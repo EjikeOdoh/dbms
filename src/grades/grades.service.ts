@@ -1,19 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Grade } from './entities/grade.entity';
+import { Repository } from 'typeorm';
+import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
 export class GradesService {
-  create(createGradeDto: CreateGradeDto) {
-    return 'This action adds a new grade';
+  constructor(
+    @InjectRepository(Grade) private gradesRepository: Repository<Grade>,
+    @InjectRepository(Student) private studentsRepository: Repository<Student>
+  ) { }
+  async create(createGradeDto: CreateGradeDto) {
+    const { studentId, ...rest } = createGradeDto;
+    console.log(studentId)
+
+    const student = await this.studentsRepository.findOne({where: {id : studentId}})
+
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+    const grade = this.gradesRepository.create({
+      ...rest,
+      student,
+    });
+
+    try {
+      return await this.gradesRepository.save(grade);
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('A grade for this student and year already exists.');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred while creating the grade.');
+    }
   }
 
-  findAll() {
-    return `This action returns all grades`;
+  async findAll() {
+    return this.gradesRepository
+      .createQueryBuilder('grade')
+      .select('student.id', 'studentId')
+      .addSelect('student.firstName', 'firstName')
+      .addSelect('student.lastName', 'lastName')
+      .addSelect('student.school', 'school')
+      .addSelect('JSON_AGG(grade)', 'grades') 
+      .leftJoin('grade.student', 'student')
+      .groupBy('student.id')
+      .addGroupBy('student.firstName')
+      .addGroupBy('student.lastName')
+      .addGroupBy('student.school')
+      .getRawMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} grade`;
+  async findOne(id: number) {
+    return this.gradesRepository.createQueryBuilder('grade').leftJoin('grade.student', 'student').where(`student.id=${id}`).getMany()
   }
 
   update(id: number, updateGradeDto: UpdateGradeDto) {

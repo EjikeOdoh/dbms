@@ -1,0 +1,20 @@
+meta {
+  name: upload grade
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:3000/grades/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "studentId": 2,
+    "english":"A",
+    "math":"C",
+    "year":2024
+  }
+}

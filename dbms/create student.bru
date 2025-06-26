@@ -1,0 +1,28 @@
+meta {
+  name: create student
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/students
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "school":"GSS Kagini",
+    "firstName":"Blessing",
+    "lastName":"Emmanuel",
+    "dob":"10-10-2009",
+    "address": "Behind Hakimi Palace, Kagini",
+    "fatherLastName":"Umar",
+    "fatherFirstName":"Emmanuel",
+    "motherLastName":"Paul",
+    "motherFirstName":"Mary"
+  }
+  
+  
+  
+}

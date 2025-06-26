@@ -23,6 +23,7 @@ import { ParticipationModule } from './participation/participation.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true, 
+        logging: true,
         ssl: {
           rejectUnauthorized: false,
         },

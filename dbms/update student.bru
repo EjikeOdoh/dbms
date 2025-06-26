@@ -1,0 +1,20 @@
+meta {
+  name: update student
+  type: http
+  seq: 5
+}
+
+patch {
+  url: http://localhost:3000/students/2
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "class":"SS1",
+    "favSubject":"Biology",
+    "difficultSubject": "Mathematics",
+    "careerChoice1":"Doctor"
+  }
+}

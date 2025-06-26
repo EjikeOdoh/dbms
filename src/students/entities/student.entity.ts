@@ -9,6 +9,9 @@ export class Student {
   @Column({ length: 50, nullable: false }) 
   school: string;
 
+  @Column({length:5, nullable: true})
+  class: string;
+
   @Column({ length: 20, nullable: false }) 
   firstName: string;
 
@@ -17,6 +20,9 @@ export class Student {
 
   @Column({ nullable: false }) 
   dob: Date;
+
+  @Column({length: 100})
+  address: string;
 
   @Column({ length: 13, nullable: true }) 
   phone: string;
