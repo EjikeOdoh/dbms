@@ -1,26 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateProgramDto } from './dto/create-program.dto';
 import { UpdateProgramDto } from './dto/update-program.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Program } from './entities/program.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProgramsService {
-  create(createProgramDto: CreateProgramDto) {
-    return 'This action adds a new program';
+  constructor(
+    @InjectRepository(Program) private programsRepository: Repository<Program>
+  ) { }
+
+  async create(createProgramDto: CreateProgramDto) {
+
+    const program = this.programsRepository.create(createProgramDto)
+    try {
+      return await this.programsRepository.save(program)
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('This program already exist.');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred while creating this program.');
+    }
   }
 
-  findAll() {
-    return `This action returns all programs`;
+  async findAll() {
+    return this.programsRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} program`;
+  async findOne(id: number) {
+    return this.programsRepository.findOne({ where: { id } })
   }
 
-  update(id: number, updateProgramDto: UpdateProgramDto) {
-    return `This action updates a #${id} program`;
+  async update(id: number, updateProgramDto: UpdateProgramDto) {
+    this.programsRepository.update(id, updateProgramDto)
+    return this.findOne(id)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} program`;
+  async remove(id: number) {
+    await this.programsRepository.delete(id)
+    return { deleted: true };
   }
 }

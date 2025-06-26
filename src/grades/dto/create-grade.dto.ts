@@ -1,8 +1,8 @@
-import { IsString, IsOptional, IsInt, IsNotEmpty, Length } from 'class-validator';
+import { IsString, IsOptional, IsInt, Length } from 'class-validator';
 
 export class CreateGradeDto {
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   studentId: number;
 
   @IsString()
@@ -56,6 +56,6 @@ export class CreateGradeDto {
   accounting?: string;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   year: number;
 }

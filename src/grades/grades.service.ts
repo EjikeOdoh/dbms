@@ -14,10 +14,7 @@ export class GradesService {
   ) { }
   async create(createGradeDto: CreateGradeDto) {
     const { studentId, ...rest } = createGradeDto;
-    console.log(studentId)
-
-    const student = await this.studentsRepository.findOne({where: {id : studentId}})
-
+    const student = await this.studentsRepository.findOne({ where: { id: studentId } })
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
@@ -43,7 +40,7 @@ export class GradesService {
       .addSelect('student.firstName', 'firstName')
       .addSelect('student.lastName', 'lastName')
       .addSelect('student.school', 'school')
-      .addSelect('JSON_AGG(grade)', 'grades') 
+      .addSelect('JSON_AGG(grade)', 'grades')
       .leftJoin('grade.student', 'student')
       .groupBy('student.id')
       .addGroupBy('student.firstName')
@@ -53,14 +50,20 @@ export class GradesService {
   }
 
   async findOne(id: number) {
-    return this.gradesRepository.createQueryBuilder('grade').leftJoin('grade.student', 'student').where(`student.id=${id}`).getMany()
+    return this.gradesRepository
+      .createQueryBuilder('grade')
+      .leftJoin('grade.student', 'student')
+      .where(`student.id=${id}`)
+      .getMany()
   }
 
-  update(id: number, updateGradeDto: UpdateGradeDto) {
-    return `This action updates a #${id} grade`;
+  async update(id: number, updateGradeDto: UpdateGradeDto) {
+    await this.gradesRepository.update(id, updateGradeDto)
+    return this.gradesRepository.findOne({ where: { id } })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} grade`;
+  async remove(id: number) {
+    await this.gradesRepository.delete(id)
+    return { deleted: true }
   }
 }

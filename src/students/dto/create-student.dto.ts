@@ -1,4 +1,8 @@
-import { IsString, IsNotEmpty, IsOptional, IsDate, IsNumber, Length } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsDate, IsNumber, Length, ValidateNested, IsEnum, IsInt } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateGradeDto } from '../../grades/dto/create-grade.dto';
+import { ProgramType } from 'src/programs/entities/program.entity';
+
 
 export class CreateStudentDto {
   @IsString()
@@ -127,4 +131,21 @@ export class CreateStudentDto {
   @IsOptional()
   @Length(1, 20)
   careerChoice2?: string;
+
+  @ValidateNested({ each: true })
+  @Type(() => CreateGradeDto)
+  @IsOptional()
+  grades?: CreateGradeDto;
+
+  @IsEnum(ProgramType)
+  @IsNotEmpty()
+  program: ProgramType
+
+  @IsInt()
+  @IsNotEmpty()
+  year: number
+
+  @IsInt()
+  @IsNotEmpty()
+  quarter: number
 }

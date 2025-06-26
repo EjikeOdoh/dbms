@@ -1,0 +1,17 @@
+meta {
+  name: Add program
+  type: http
+  seq: 10
+}
+
+post {
+  url: http://localhost:3000/programs
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "program":"DSC"
+  }
+}

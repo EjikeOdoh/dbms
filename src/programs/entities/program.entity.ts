@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 
 export enum ProgramType {
   ASCG = 'ASCG',
@@ -8,6 +8,7 @@ export enum ProgramType {
 }
 
 @Entity('programs')
+@Unique(['program'])
 export class Program {
   @PrimaryGeneratedColumn()
   id: number;
