@@ -33,6 +33,10 @@ export class Student {
   @Column({ length: 20, nullable: true }) 
   fatherLastName: string;
 
+  // Come back later
+  @Column({length:20, nullable: true})
+  country: string;
+
   @Column({ length: 20, nullable: true }) 
   fatherFirstName: string;
 

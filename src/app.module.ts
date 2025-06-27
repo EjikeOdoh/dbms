@@ -5,6 +5,7 @@ import { StudentsModule } from './students/students.module';
 import { ProgramsModule } from './programs/programs.module';
 import { GradesModule } from './grades/grades.module';
 import { ParticipationModule } from './participation/participation.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { ParticipationModule } from './participation/participation.module';
         database: configService.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true, 
-        logging: true,
+        // logging: true,
         ssl: {
           rejectUnauthorized: false,
         },
@@ -33,6 +34,7 @@ import { ParticipationModule } from './participation/participation.module';
     ProgramsModule,
     GradesModule,
     ParticipationModule,
+    UploadsModule,
   ],
   controllers: [],
   providers: [],

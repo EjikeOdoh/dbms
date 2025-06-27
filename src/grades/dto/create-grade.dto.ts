@@ -3,7 +3,7 @@ import { IsString, IsOptional, IsInt, Length } from 'class-validator';
 export class CreateGradeDto {
   @IsInt()
   @IsOptional()
-  studentId: number;
+  studentId?: number;
 
   @IsString()
   @IsOptional()
@@ -57,5 +57,5 @@ export class CreateGradeDto {
 
   @IsInt()
   @IsOptional()
-  year: number;
+  year?: number;
 }

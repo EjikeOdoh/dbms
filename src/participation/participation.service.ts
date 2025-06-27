@@ -37,16 +37,39 @@ export class ParticipationService {
     try {
       return await this.participationRepository.save(participation)
     } catch (error) {
-      throw new InternalServerErrorException('An unexpected error occurred while creating the grade.');
+      throw new InternalServerErrorException('An unexpected error occurred while creating this record.');
     }
   }
+
   async findAll() {
-    return await this.participationRepository
+    const rawResults = await this.participationRepository
       .createQueryBuilder('participation')
-      .leftJoinAndSelect('participation.student', 'student')
-      .leftJoin('participation.program', 'program') 
-      .addSelect('program.program', 'program') 
-      .getRawMany(); 
+      .leftJoin('participation.student', 'student')
+      .leftJoin('participation.program', 'program')
+      .select([
+        'participation.id AS participationId',
+        'participation.year AS year',
+        'participation.quarter AS quarter',
+        'student.id AS studentId',
+        'student.firstName AS firstName',
+        'student.lastName AS lastName',
+        'student.dob AS dob',
+        'student.country AS country',
+        'program.program AS program',
+      ])
+      .getRawMany();
+
+    return rawResults.map((result) => ({
+      participationId: result.participationid,
+      year: result.year,
+      quarter: result.quarter,
+      studentId: result.studentid,
+      firstName: result.firstname,
+      lastName: result.lastname,
+      dob: result.dob,
+      country: result.country,
+      program: result.program,
+    }));
   }
 
   findOne(id: number) {
@@ -55,7 +78,7 @@ export class ParticipationService {
 
   update(id: number, updateParticipationDto: UpdateParticipationDto) {
     return `This action updates a #${id} participation`;
-   }
+  }
 
   remove(id: number) {
     return `This action removes a #${id} participation`;

@@ -35,6 +35,11 @@ export class CreateStudentDto {
   address?: string;
 
   @IsString()
+  @IsNotEmpty()
+  @Length(1,20)
+  country: string;
+
+  @IsString()
   @IsOptional()
   @Length(1, 13)
   phone?: string;
