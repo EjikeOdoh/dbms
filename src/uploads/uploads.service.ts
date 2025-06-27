@@ -8,11 +8,11 @@ import {parse} from 'date-fns'
 @Injectable()
 export class UploadsService {
 
-    async processFile(filePath: string) {
+    async processFile(filePath: string, data) {
         let records: any[]
         try {
             records = this.parseXLSX(filePath)
-            const studentsData = records.map(record=>(this.mapToCreateStudentDto(record)))
+            const studentsData = records.map(record=>(this.mapToCreateStudentDto(record, data)))
             return studentsData;
         } catch (error) {
             console.log(error)
@@ -49,8 +49,7 @@ export class UploadsService {
 
     // Transforming the data functions
 
-    private mapToCreateStudentDto(record: any): CreateStudentDto {
-        // Map the Excel row to CreateStudentDto
+    private mapToCreateStudentDto(record: any, data): CreateStudentDto {
         return {
           school: record['SCHOOL'],
           class: record['Class'],
@@ -79,9 +78,9 @@ export class UploadsService {
           careerChoice1: record['CAREER CHOICE 1'],
           careerChoice2: record['CAREER CHOICE 2'],
           country: 'Nigeria',
-          quarter: 1,
-          year: 2025,
-          program: ProgramType['ASCG'],    
+          quarter: Number(data['quarter']),
+          year: Number(data['year']),
+          program: ProgramType[data['program']],    
            grades:{
             english: record['ENGLISH'],
             math: record['MATHEMATICS'],
@@ -94,25 +93,6 @@ export class UploadsService {
             literature: record['LITERATURE'],
             accounting: record['ACCOUNTING'],
            }
-      
-         
         };
       }
-    
-    //   private mapGrades(record: any): GradeDto[] {
-    //     // Map grades from the record
-    //     return [
-    //       { subject: 'English', grade: record['ENGLISH'] },
-    //       { subject: 'Mathematics', grade: record['MATHEMATICS'] },
-    //       { subject: 'Chemistry', grade: record['CHEMISTRY'] },
-    //       { subject: 'Physics', grade: record['PHYSICS'] },
-    //       { subject: 'Government', grade: record['GOVERNMENT'] },
-    //       { subject: 'Economics', grade: record['ECONOMICS'] },
-    //       { subject: 'Biology', grade: record['BIOLOGY'] },
-    //       { subject: 'Commerce', grade: record['COMMERCE'] },
-    //       { subject: 'Literature', grade: record['LITERATURE'] },
-    //       { subject: 'Accounting', grade: record['ACCOUNTING'] },
-    //     ].filter((grade) => grade.grade); // Filter out empty grades
-    //   }
-
 }

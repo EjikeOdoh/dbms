@@ -5,7 +5,14 @@ meta {
 }
 
 post {
-  url: 
-  body: none
+  url: http://localhost:3000/uploads
+  body: multipartForm
   auth: none
+}
+
+body:multipart-form {
+  file: @file(/home/ejike/Downloads/WEEK 6&7 ASCG ATTENDANCE.xlsx)
+  year: 2025
+  program: ASCG
+  quarter: 2
 }

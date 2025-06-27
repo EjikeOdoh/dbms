@@ -1,4 +1,4 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as path from 'path';
 import { diskStorage } from 'multer';
@@ -22,12 +22,13 @@ export class UploadsController {
       }),
     }),
   )
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadFile(@UploadedFile() file: Express.Multer.File,
+    @Body() data: { year: number, program: string, quarter: 1 }) {
     if (!file || !file.path) {
       throw new Error('File upload failed or file path is undefined.');
     }
 
     const filePath = path.resolve(file.path);
-    return await this.uploadsService.processFile(filePath)
+    return await this.uploadsService.processFile(filePath, data)
   }
 }
