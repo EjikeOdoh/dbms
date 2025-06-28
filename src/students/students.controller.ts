@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -20,6 +20,11 @@ export class StudentsController {
   @Delete()
   async removeAll() {
     return this.studentsService.removeAll()
+  }
+
+  @Get('search')
+  async search(@Query('name') name:string) {
+    return this.studentsService.findByNames(name)
   }
 
   @Get(':id')

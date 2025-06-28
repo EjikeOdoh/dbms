@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, Index } from 'typeorm';
 
 @Entity('students')
 @Unique(['school', 'firstName', 'lastName', 'dob'])
+@Index('idx_student_fullname', ['firstName', 'lastName'])
 export class Student {
   @PrimaryGeneratedColumn()
   id: number;

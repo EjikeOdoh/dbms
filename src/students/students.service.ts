@@ -3,7 +3,7 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Student } from './entities/student.entity';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { GradesService } from 'src/grades/grades.service';
 import { Participation } from 'src/participation/entities/participation.entity';
 import { Program } from 'src/programs/entities/program.entity';
@@ -60,7 +60,7 @@ export class StudentsService {
             });
             await this.participationRepository.save(newParticipation);
 
-            if(grades) {
+            if (grades) {
               await this.gradesService.create({ ...grades, year, studentId: existingStudent.id });
             }
             return existingStudent;
@@ -76,8 +76,7 @@ export class StudentsService {
   async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
     const results: Student[] = [];
     const errors: any[] = [];
-  
-    // Use Promise.all with map instead of forEach
+
     await Promise.all(
       createStudentDtos.map(async (studentDto) => {
         try {
@@ -90,11 +89,10 @@ export class StudentsService {
         }
       })
     );
-  
+
     if (errors.length > 0) {
       console.error('Some students could not be created:', errors);
     }
-  
     return results;
   }
 
@@ -104,18 +102,17 @@ export class StudentsService {
     return this.studentsRepository.find()
   }
 
-
   async findOne(id: number) {
     const student = await this.studentsRepository.findOne({ where: { id } });
     if (!student) {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
-  
+
     const grades = await this.gradesService.findOne(id);
-  
+
     const participations = await this.participationRepository
       .createQueryBuilder('participation')
-      .leftJoinAndSelect('participation.program', 'program') 
+      .leftJoinAndSelect('participation.program', 'program')
       .select([
         'participation.year',
         'participation.quarter',
@@ -123,8 +120,39 @@ export class StudentsService {
       ])
       .where('participation.studentId = :studentId', { studentId: id })
       .getRawMany();
-  
+
     return { ...student, grades, participations };
+  }
+
+  async findByNames(name: string) {
+    const nameParts = name.trim().split(/\s+/);
+    const queryBuilder = this.studentsRepository.createQueryBuilder('student');
+    if (nameParts.length === 1) {
+      // Single name search
+      queryBuilder
+        .where('LOWER(student.firstName) LIKE LOWER(:name)', { name: `%${nameParts[0]}%` })
+        .orWhere('LOWER(student.lastName) LIKE LOWER(:name)', { name: `%${nameParts[0]}%` });
+    } else {
+      // Full name search (first + last name)
+      queryBuilder
+        .where(new Brackets(qb => {
+          qb.where('LOWER(student.firstName) LIKE LOWER(:firstName) AND LOWER(student.lastName) LIKE LOWER(:lastName)', {
+            firstName: `%${nameParts[0]}%`,
+            lastName: `%${nameParts[1]}%`
+          })
+            .orWhere('LOWER(student.firstName) LIKE LOWER(:lastName) AND LOWER(student.lastName) LIKE LOWER(:firstName)', {
+              firstName: `%${nameParts[0]}%`,
+              lastName: `%${nameParts[1]}%`
+            });
+        }));
+    }
+
+    const [students, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      count: total,
+      students,
+    };
   }
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {
