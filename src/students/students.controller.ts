@@ -17,6 +17,11 @@ export class StudentsController {
     return this.studentsService.findAll();
   }
 
+  @Delete()
+  async removeAll() {
+    return this.studentsService.removeAll()
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.studentsService.findOne(+id);

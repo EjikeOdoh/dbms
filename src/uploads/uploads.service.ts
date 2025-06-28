@@ -3,24 +3,27 @@ import * as XLSX from 'xlsx'
 import * as fs from 'fs'
 import { CreateStudentDto } from 'src/students/dto/create-student.dto';
 import { ProgramType } from 'src/programs/entities/program.entity';
-import {parse} from 'date-fns'
+import { StudentsService } from 'src/students/students.service';
 
 @Injectable()
 export class UploadsService {
+    constructor (
+        private studentsService: StudentsService
+    ) {}
 
     async processFile(filePath: string, data) {
         let records: any[]
         try {
             records = this.parseXLSX(filePath)
             const studentsData = records.map(record=>(this.mapToCreateStudentDto(record, data)))
-            return studentsData;
+            await this.studentsService.createMany(studentsData)
+            return {upload: true};
         } catch (error) {
             console.log(error)
             throw new HttpException("Error processing this file", HttpStatus.BAD_REQUEST)
         } finally {
             this.deleteFile(filePath)
         }
-
     }
 
     private parseXLSX(filePath: string): any[] {
@@ -46,9 +49,7 @@ export class UploadsService {
         });
     }
 
-
-    // Transforming the data functions
-
+    // Transforming the data function
     private mapToCreateStudentDto(record: any, data): CreateStudentDto {
         return {
           school: record['SCHOOL'],
@@ -77,7 +78,7 @@ export class UploadsService {
           difficultSubject: record['DIFFICULT SUBJECT'],
           careerChoice1: record['CAREER CHOICE 1'],
           careerChoice2: record['CAREER CHOICE 2'],
-          country: 'Nigeria',
+          country: record['COUNTRY'],
           quarter: Number(data['quarter']),
           year: Number(data['year']),
           program: ProgramType[data['program']],    

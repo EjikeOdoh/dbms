@@ -60,6 +60,9 @@ export class StudentsService {
             });
             await this.participationRepository.save(newParticipation);
 
+            if(grades) {
+              await this.gradesService.create({ ...grades, year, studentId: existingStudent.id });
+            }
             return existingStudent;
           } else {
             throw new ConflictException('A participation with the same program and year already exists.');
@@ -68,6 +71,31 @@ export class StudentsService {
       }
       throw new InternalServerErrorException('An unexpected error occurred while creating the student.');
     }
+  }
+
+  async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
+    const results: Student[] = [];
+    const errors: any[] = [];
+  
+    // Use Promise.all with map instead of forEach
+    await Promise.all(
+      createStudentDtos.map(async (studentDto) => {
+        try {
+          const student = await this.create(studentDto);
+          results.push(student);
+        } catch (error) {
+          errors.push({
+            error: error.message
+          });
+        }
+      })
+    );
+  
+    if (errors.length > 0) {
+      console.error('Some students could not be created:', errors);
+    }
+  
+    return results;
   }
 
   async findAll() {
@@ -107,5 +135,15 @@ export class StudentsService {
   async remove(id: number) {
     await this.studentsRepository.delete(id);
     return { deleted: true };
+  }
+
+  async removeAll(): Promise<void> {
+    try {
+      await this.studentsRepository.query('TRUNCATE TABLE students RESTART IDENTITY CASCADE');
+      console.log('Students table truncated successfully');
+    } catch (error) {
+      console.error('Error truncating students table:', error);
+      throw new InternalServerErrorException('An error occurred while truncating the students table.');
+    }
   }
 }
