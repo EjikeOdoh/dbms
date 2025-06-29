@@ -7,6 +7,7 @@ import { Repository, Brackets } from 'typeorm';
 import { GradesService } from 'src/grades/grades.service';
 import { Participation } from 'src/participation/entities/participation.entity';
 import { Program } from 'src/programs/entities/program.entity';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class StudentsService {
@@ -96,10 +97,35 @@ export class StudentsService {
     return results;
   }
 
-  async findAll() {
-    const count = await this.studentsRepository.count()
-    console.log(count)
-    return this.studentsRepository.find()
+  async findAll(paginationDto: PaginationDto) {
+
+    const { page = 1, limit = 20 } = paginationDto;
+    const skip: number = (page - 1) * limit;
+
+    const [students, total] = await this.studentsRepository.createQueryBuilder('student').select([
+      'student.id',
+      'student.firstName',
+      'student.lastName',
+      'student.dob',
+      'student.country'
+    ])
+      .skip(skip)
+      .take(limit)
+      .orderBy('student.firstName', 'ASC')
+      .getManyAndCount()
+
+    return {
+      data: students,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        nextPage: Math.ceil(total / limit) > page ? Number(page) + 1 :  Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1
+      }
+    }
   }
 
   async findOne(id: number) {

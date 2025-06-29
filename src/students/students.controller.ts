@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('students')
 export class StudentsController {
@@ -13,8 +14,8 @@ export class StudentsController {
   }
 
   @Get()
-  async findAll() {
-    return this.studentsService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return this.studentsService.findAll(paginationDto);
   }
 
   @Delete()
@@ -29,7 +30,7 @@ export class StudentsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.studentsService.findOne(+id);
+    return this.studentsService.findOne( +id);
   }
 
   @Patch(':id')
