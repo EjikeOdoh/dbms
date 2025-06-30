@@ -29,6 +29,7 @@ export class GradesService {
       if (error.code === '23505') {
         throw new ConflictException('A grade for this student and year already exists.');
       }
+      console.log('Grade Error:', error)
       throw new InternalServerErrorException('An unexpected error occurred while creating the grade.');
     }
   }

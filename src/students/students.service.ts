@@ -70,6 +70,7 @@ export class StudentsService {
           }
         }
       }
+      console.log(error)
       throw new InternalServerErrorException(`An unexpected error occurred while creating the student. ${createStudentDto.firstName} ${createStudentDto.lastName}`);
     }
   }

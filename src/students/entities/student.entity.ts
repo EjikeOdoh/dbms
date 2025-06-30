@@ -13,10 +13,11 @@ export class Student {
   @Column({ length: 5, nullable: true })
   class: string;
 
-  @Column({ length: 20, nullable: false })
+  //remember to change later
+  @Column({ length: 50, nullable: false })
   firstName: string;
 
-  @Column({ length: 20, nullable: false })
+  @Column({ length: 50, nullable: false })
   lastName: string;
 
   @Column({ nullable: false })

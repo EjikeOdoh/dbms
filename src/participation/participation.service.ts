@@ -82,36 +82,6 @@ export class ParticipationService {
     };
   }
 
-  async findAll() {
-    const rawResults = await this.participationRepository
-      .createQueryBuilder('participation')
-      .leftJoin('participation.student', 'student')
-      .leftJoin('participation.program', 'program')
-      .select([
-        'participation.id AS participationId',
-        'participation.year AS year',
-        'participation.quarter AS quarter',
-        'student.id AS studentId',
-        'student.firstName AS firstName',
-        'student.lastName AS lastName',
-        'student.dob AS dob',
-        'student.country AS country',
-        'program.program AS program',
-      ])
-      .getRawMany();
-
-    return rawResults.map((result) => ({
-      participationId: result.participationid,
-      year: result.year,
-      quarter: result.quarter,
-      studentId: result.studentid,
-      firstName: result.firstname,
-      lastName: result.lastname,
-      dob: result.dob,
-      country: result.country,
-      program: result.program,
-    }));
-  }
 
   async findByOptions(filterDto?: FilterDto) {
     const queryBuilder = this.participationRepository
