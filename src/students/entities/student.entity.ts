@@ -25,7 +25,7 @@ export class Student {
   @Column({ length: 100, nullable: true })
   address: string;
 
-  @Column({ length: 13, nullable: true })
+  @Column({ length: 20, nullable: true })
   phone: string;
 
   @Column({ length: 30, nullable: true })

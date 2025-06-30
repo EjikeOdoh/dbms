@@ -1,20 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ParticipationService } from './participation.service';
 import { CreateParticipationDto } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
+import { FilterDto } from './dto/filter.dto';
 
 @Controller('participation')
 export class ParticipationController {
   constructor(private readonly participationService: ParticipationService) {}
 
   @Post()
-  create(@Body() createParticipationDto: CreateParticipationDto) {
+  async create(@Body() createParticipationDto: CreateParticipationDto) {
     return this.participationService.create(createParticipationDto);
   }
 
   @Get()
-  findAll() {
-    return this.participationService.findAll();
+  findAll(@Query('year') year: number) {
+    return this.participationService.getStats(year);
+  }
+
+  @Get('filter')
+  async filter(@Query() filterDto: FilterDto ) {
+    return this.participationService.findByOptions(filterDto)
   }
 
   @Get(':id')
