@@ -76,6 +76,7 @@ export class ParticipationService {
     const totalCount = await queryBuilder.getCount();
 
     return {
+      year: year ?? 'All',
       totalCount,
       countByCountry,
       countByProgram

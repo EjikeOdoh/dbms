@@ -1,8 +1,11 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import * as path from 'path';
+import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import { UploadsService } from './uploads.service';
+import { FilterDto } from 'src/participation/dto/filter.dto';
+import { Response } from 'express';
 
 @Controller('uploads')
 export class UploadsController {
@@ -30,5 +33,24 @@ export class UploadsController {
 
     const filePath = path.resolve(file.path);
     return await this.uploadsService.processFile(filePath, data)
+  }
+
+  @Get('download')
+  async download(@Query() filterDto: FilterDto, @Res() res: Response) {
+    const { filePath, fileName } = await this.uploadsService.download(filterDto);
+    
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        res.status(500).send('Error downloading file');
+      }
+      
+      // Clean up: delete the temporary file
+      fs.unlink(filePath, (unlinkErr) => {
+        if (unlinkErr) {
+          console.error('Error deleting temporary file:', unlinkErr);
+        }
+      });
+    });
   }
 }
