@@ -7,6 +7,7 @@ import { GradesModule } from './grades/grades.module';
 import { ParticipationModule } from './participation/participation.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AuthModule } from './auth/auth.module';
     ParticipationModule,
     UploadsModule,
     AuthModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],
