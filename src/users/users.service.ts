@@ -44,7 +44,11 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    return this.users.find(user => user.userId === id)
+    const user = this.users.find(user => user.userId === id)
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+    return user
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
