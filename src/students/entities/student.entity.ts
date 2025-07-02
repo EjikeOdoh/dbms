@@ -89,4 +89,7 @@ export class Student {
 
   @Column({ length: 50, nullable: true })
   careerChoice2: string;
+
+  @Column({ nullable: false})
+  yearJoined: number;
 }

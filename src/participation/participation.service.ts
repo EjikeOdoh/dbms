@@ -45,6 +45,9 @@ export class ParticipationService {
 
   async getStats(year: number) {
 
+    // Get unique count
+    let uniqueCount = await this.studentsRepository.count()
+
     const queryBuilder = this.participationRepository
     .createQueryBuilder('participation')
     .leftJoin('participation.student', 'student')
@@ -52,6 +55,7 @@ export class ParticipationService {
 
     if (year) {
       queryBuilder.andWhere('participation.year = :year', { year });
+      uniqueCount = await this.studentsRepository.count({where: {yearJoined: year}})
     }
 
     // Get count by country
@@ -79,7 +83,8 @@ export class ParticipationService {
       year: year ?? 'All',
       totalCount,
       countByCountry,
-      countByProgram
+      countByProgram,
+      uniqueCount
     };
   }
 

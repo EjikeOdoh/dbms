@@ -1,0 +1,24 @@
+meta {
+  name: create staff
+  type: http
+  seq: 20
+}
+
+post {
+  url: http://localhost:3000/staff
+  body: json
+  auth: none
+}
+
+body:json {
+   {
+    "staffId": "I0415",
+    "firstName": "Ejike",
+    "lastName": "Odoh",
+    "dob": "1995-10-23",
+    "address": "Chika, Airport Rd, Abuja",
+    "yearJoined": 2024,
+    "role": "Head Instructor",
+    "isActive": true
+  }
+}

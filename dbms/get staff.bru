@@ -1,0 +1,15 @@
+meta {
+  name: get staff
+  type: http
+  seq: 19
+}
+
+get {
+  url: http://localhost:3000/staff
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiYWRtaW4iLCJpYXQiOjE3NTE0NTU3MTN9._gNi8td7Fzw-dNWghCBLNfaaqXcjH7OcC-7zvQK_PWY
+}

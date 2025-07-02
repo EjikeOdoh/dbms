@@ -25,7 +25,7 @@ export class StudentsService {
     if (!currentProgram) {
       throw new NotFoundException(`Program with name ${program} not found`);
     }
-    const student = this.studentsRepository.create({ ...rest });
+    const student = this.studentsRepository.create({ ...rest, yearJoined: year });
 
     try {
       const newStudent = await this.studentsRepository.save(student);
@@ -108,7 +108,8 @@ export class StudentsService {
       'student.firstName',
       'student.lastName',
       'student.dob',
-      'student.country'
+      'student.country',
+      'student.yearJoined'
     ])
       .skip(skip)
       .take(limit)
@@ -122,7 +123,7 @@ export class StudentsService {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-        nextPage: Math.ceil(total / limit) > page ? Number(page) + 1 :  Math.ceil(total / limit),
+        nextPage: Math.ceil(total / limit) > page ? Number(page) + 1 : Math.ceil(total / limit),
         hasNextPage: page * limit < total,
         hasPreviousPage: page > 1
       }
@@ -183,8 +184,14 @@ export class StudentsService {
   }
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {
-    await this.studentsRepository.update(id, updateStudentDto);
-    return this.studentsRepository.findOne({ where: { id } });
+    try {
+      await this.studentsRepository.update(id, updateStudentDto);
+      return this.studentsRepository.findOne({ where: { id } });
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while updating this student record')
+    }
+
   }
 
   async remove(id: number) {

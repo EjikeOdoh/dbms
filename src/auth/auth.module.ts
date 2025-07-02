@@ -10,10 +10,10 @@ import { AuthGuard } from './guard/auth.guard';
 @Module({
   controllers: [AuthController],
   providers: [AuthService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard
-    }
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard
+    // }
   ],
   imports:[UsersModule, JwtModule.register({
     global: true,

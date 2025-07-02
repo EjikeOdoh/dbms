@@ -8,6 +8,7 @@ import { ParticipationModule } from './participation/participation.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { StaffModule } from './staff/staff.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { UsersModule } from './users/users.module';
     UploadsModule,
     AuthModule,
     UsersModule,
+    StaffModule,
   ],
   controllers: [],
   providers: [],
