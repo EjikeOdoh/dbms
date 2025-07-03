@@ -11,10 +11,10 @@ import { AuthGuard } from './guard/auth.guard';
   controllers: [AuthController],
   providers: [
     AuthService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard
-    }
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard
+    // }
   ],
   imports: [
     ConfigModule.forRoot(),
