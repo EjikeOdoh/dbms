@@ -1,4 +1,3 @@
-
 import {
     CanActivate,
     ExecutionContext,
@@ -10,12 +9,14 @@ import {
   import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from 'src/decorators/decorators';
+import { ConfigService } from '@nestjs/config';
   
   @Injectable()
   export class AuthGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
-        private reflector: Reflector
+        private reflector: Reflector,
+        private configService: ConfigService
     ) {}
   
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -38,7 +39,7 @@ import { IS_PUBLIC_KEY } from 'src/decorators/decorators';
         const payload = await this.jwtService.verifyAsync(
           token,
           {
-            secret: jwtConstants.secret
+            secret: this.configService.get<string>('JWT_SECRET')
           }
         );
 
@@ -54,4 +55,3 @@ import { IS_PUBLIC_KEY } from 'src/decorators/decorators';
       return type === 'Bearer' ? token : undefined;
     }
   }
-  
