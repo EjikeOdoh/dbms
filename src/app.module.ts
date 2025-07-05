@@ -9,6 +9,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { StaffModule } from './staff/staff.module';
+import { TargetModule } from './target/target.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { StaffModule } from './staff/staff.module';
     AuthModule,
     UsersModule,
     StaffModule,
+    TargetModule,
   ],
   controllers: [],
   providers: [],

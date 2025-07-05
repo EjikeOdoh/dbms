@@ -99,7 +99,6 @@ export class StudentsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-
     const { page = 1, limit = 20 } = paginationDto;
     const skip: number = (page - 1) * limit;
 
@@ -195,8 +194,13 @@ export class StudentsService {
   }
 
   async remove(id: number) {
-    await this.studentsRepository.delete(id);
-    return { deleted: true };
+    try {
+      await this.studentsRepository.delete(id);
+      return { deleted: true };
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while deleting this student record')
+    }
   }
 
   async removeAll(): Promise<void> {

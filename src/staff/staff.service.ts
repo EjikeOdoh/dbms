@@ -52,7 +52,13 @@ export class StaffService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} staff`;
+  async remove(id: number) {
+    try {
+      await this.staffRepository.delete(id)
+      return { delete: true }
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while deleting this staff record')
+    }
   }
 }

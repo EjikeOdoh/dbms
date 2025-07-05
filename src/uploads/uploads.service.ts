@@ -89,11 +89,11 @@ export class UploadsService {
     private mapToCreateStudentDto(record: any, data): CreateStudentDto {
         return {
             school: record['SCHOOL'],
-            class: record['Class'],
+            class: record['CLASS'],
             firstName: record['FIRST NAME'],
             lastName: record['LAST NAME'],
-            dob: record['FDOB'],
-            address: record['Address'],
+            dob: record['DOB'],
+            address: record['ADDRESS'],
             phone: record['CELL NO.']?.toString(),
             email: record['E-MAIL'],
             fatherLastName: record["FATHER'S LAST NAME"],

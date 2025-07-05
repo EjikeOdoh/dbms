@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { FilterDto } from './dto/filter.dto';
-import { filter } from 'rxjs';
+import { TargetService } from 'src/target/target.service';
 
 @Injectable()
 export class ParticipationService {
@@ -15,6 +15,7 @@ export class ParticipationService {
     @InjectRepository(Participation) private participationRepository: Repository<Participation>,
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Program) private programsRepository: Repository<Program>,
+    private targetService: TargetService
   ) { }
 
   async create(createParticipationDto: CreateParticipationDto) {
@@ -43,7 +44,9 @@ export class ParticipationService {
     }
   }
 
-  async getStats(year: number) {
+  async getStats(year?: number) {
+
+    let target:number;
 
     // Get unique count
     let uniqueCount = await this.studentsRepository.count()
@@ -56,6 +59,7 @@ export class ParticipationService {
     if (year) {
       queryBuilder.andWhere('participation.year = :year', { year });
       uniqueCount = await this.studentsRepository.count({where: {yearJoined: year}})
+      target = await this.targetService.findTargetByYear(year)
     }
 
     // Get count by country
@@ -84,7 +88,8 @@ export class ParticipationService {
       totalCount,
       countByCountry,
       countByProgram,
-      uniqueCount
+      uniqueCount,
+      target: target ?? 0
     };
   }
 

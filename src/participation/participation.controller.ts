@@ -14,8 +14,8 @@ export class ParticipationController {
   }
 
   @Get()
-  findAll(@Query('year') year: number) {
-    return this.participationService.getStats(year);
+  async findAll(@Query('year') year: number) {
+    return await this.participationService.getStats(year);
   }
 
   @Get('filter')

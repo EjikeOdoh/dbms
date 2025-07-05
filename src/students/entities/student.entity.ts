@@ -29,20 +29,20 @@ export class Student {
   @Column({ length: 20, nullable: true })
   phone: string;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ length: 50, nullable: true })
   email: string;
 
   @Column({ length: 20, nullable: true })
   fatherLastName: string;
 
   // Come back later
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 50, nullable: true })
   country: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 50, nullable: true })
   fatherFirstName: string;
 
-  @Column({ length: 13, nullable: true })
+  @Column({ length: 30, nullable: true })
   fatherPhone: string;
 
   @Column({ length: 20, nullable: true })
@@ -51,13 +51,13 @@ export class Student {
   @Column({ length: 50, nullable: true })
   fatherJob: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 50, nullable: true })
   motherLastName: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ length: 50, nullable: true })
   motherFirstName: string;
 
-  @Column({ length: 13, nullable: true })
+  @Column({ length: 30, nullable: true })
   motherPhone: string;
 
   @Column({ length: 20, nullable: true })
