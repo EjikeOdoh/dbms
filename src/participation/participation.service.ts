@@ -40,48 +40,63 @@ export class ParticipationService {
     try {
       return await this.participationRepository.save(participation)
     } catch (error) {
+      console.log(error)
       throw new InternalServerErrorException('An unexpected error occurred while creating this record.');
     }
   }
 
   async getStats(year?: number) {
 
-    let target:number;
+    let target: number;
 
     // Get unique count
     let uniqueCount = await this.studentsRepository.count()
 
     const queryBuilder = this.participationRepository
-    .createQueryBuilder('participation')
-    .leftJoin('participation.student', 'student')
-    .leftJoin('participation.program', 'program');
+      .createQueryBuilder('participation')
+      .leftJoin('participation.student', 'student')
+      .leftJoin('participation.program', 'program');
+
+
 
     if (year) {
       queryBuilder.andWhere('participation.year = :year', { year });
-      uniqueCount = await this.studentsRepository.count({where: {yearJoined: year}})
+      uniqueCount = await this.studentsRepository.count({ where: { yearJoined: year } })
       target = await this.targetService.findTargetByYear(year)
     }
 
     // Get count by country
     const countByCountry = await queryBuilder
-    .select([
-      'student.country AS country',
-      'COUNT(participation.id) AS count'
-    ])
-    .groupBy('student.country')
-    .getRawMany();
+      .select([
+        'student.country AS country',
+        'COUNT(participation.id) AS count'
+      ])
+      .groupBy('student.country')
+      .getRawMany();
 
     // Get count by program
     const countByProgram = await queryBuilder
-    .select([
-      'program.program AS program',
-      'COUNT(participation.id) AS count'
-    ])
-    .groupBy('program.program')
-    .getRawMany();
+      .select([
+        'program.program AS program',
+        'COUNT(participation.id) AS count'
+      ])
+      .groupBy('program.program')
+      .getRawMany();
+
 
     // Get total count
     const totalCount = await queryBuilder.getCount();
+
+    // Count by year (always use fresh builder so it's not affected by previous filters)
+    const countByYear = await this.participationRepository
+      .createQueryBuilder('participation')
+      .select([
+        'participation.year AS year',
+        'COUNT(participation.id) AS count'
+      ])
+      .groupBy('participation.year')
+      .orderBy('participation.year', 'ASC')
+      .getRawMany();
 
     return {
       year: year ?? 'All',
@@ -89,10 +104,10 @@ export class ParticipationService {
       countByCountry,
       countByProgram,
       uniqueCount,
-      target: target ?? 0
+      countByYear,
+      target: target ?? 0,
     };
   }
-
 
   async findByOptions(filterDto?: FilterDto) {
     const queryBuilder = this.participationRepository
@@ -109,9 +124,10 @@ export class ParticipationService {
         'student.dob AS dob',
         'student.country AS country',
         'program.program AS program',
+
       ]);
 
-  
+
     if (filterDto?.year) {
       queryBuilder.andWhere('participation.year = :year', { year: filterDto.year });
     }
@@ -134,20 +150,21 @@ export class ParticipationService {
       dob: result.dob,
       country: result.country,
       program: result.program,
+      count: result.count
     }));
   }
 
-
-
-  findOne(id: number) {
-    return `This action returns a #${id} participation`;
+  async findOne(id: number) {
+    return this.participationRepository.findOne({ where: { id } })
   }
 
-  update(id: number, updateParticipationDto: UpdateParticipationDto) {
-    return `This action updates a #${id} participation`;
+  async update(id: number, updateParticipationDto: UpdateParticipationDto) {
+    await this.participationRepository.update(id, updateParticipationDto)
+    return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} participation`;
+  async remove(id: number) {
+    await this.participationRepository.delete(id)
+    return { deleted: true }
   }
 }

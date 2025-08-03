@@ -13,7 +13,7 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   @Length(1, 5)
-  class: string;
+  currentClass: string;
 
   @IsString()
   @IsNotEmpty()

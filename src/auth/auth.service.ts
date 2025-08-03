@@ -10,7 +10,9 @@ export class AuthService {
         private jwtService: JwtService
     ) { }
 
-    async login(loginDto: LoginDto): Promise<{ token: string }> {
+    async login(loginDto: LoginDto): Promise<{
+        token: string,
+    }> {
         const { name, password } = loginDto
         const user = await this.usersService.findByName(name)
         if (user.password !== password) {
@@ -18,14 +20,17 @@ export class AuthService {
         }
         const payload = {
             sub: user.userId,
-            username: user.name
+            role: user.role
         }
-        return { token: await this.jwtService.signAsync(payload) }
+        return {
+            token: await this.jwtService.signAsync(payload)
+        }
     }
 
 
     async getProfile(id: number) {
-        return await this.usersService.findOne(id)
+        const user = await this.usersService.findOne(id)
+        return { role: user.role, name: user.name }
     }
 
 }

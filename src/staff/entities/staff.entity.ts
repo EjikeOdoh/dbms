@@ -6,7 +6,7 @@ export class Staff {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, unique: true })
     staffId: string
 
     @Column({ length: 50, nullable: false })
@@ -16,18 +16,43 @@ export class Staff {
     lastName: string
 
     @Column({ nullable: true })
-    dob: Date
+    startDate: Date
+
+    @Column({ nullable: true })
+    endDate: Date
 
     @Column({ nullable: true })
     address: string
 
-    @Column({ nullable: false })
-    yearJoined: number
+    @Column({ nullable: true })
+    location: string
 
     @Column({ nullable: true })
     role: string
 
     @Column({ default: true })
-    isActive: boolean
+    active: boolean
+
+    @Column({ nullable: true })
+    skillSet: string
+
+    @Column({nullable: true})
+    cpName1: string
+
+    @Column({nullable: true})
+    cpRel1: string
+
+    @Column({nullable: true})
+    cpPhone1: string
+
+    @Column({nullable: true})
+    cpName2: string
+
+    @Column({nullable: true})
+    cpRel2: string
+
+    @Column({nullable: true})
+    cpPhone2: string
+
 
 }

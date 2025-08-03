@@ -6,7 +6,7 @@ import { FilterDto } from './dto/filter.dto';
 
 @Controller('participation')
 export class ParticipationController {
-  constructor(private readonly participationService: ParticipationService) {}
+  constructor(private readonly participationService: ParticipationService) { }
 
   @Post()
   async create(@Body() createParticipationDto: CreateParticipationDto) {
@@ -19,22 +19,22 @@ export class ParticipationController {
   }
 
   @Get('filter')
-  async filter(@Query() filterDto: FilterDto ) {
+  async filter(@Query() filterDto: FilterDto) {
     return this.participationService.findByOptions(filterDto)
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.participationService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.participationService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateParticipationDto: UpdateParticipationDto) {
-    return this.participationService.update(+id, updateParticipationDto);
+  async update(@Param('id') id: string, @Body() updateParticipationDto: UpdateParticipationDto) {
+    return await this.participationService.update(+id, updateParticipationDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.participationService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.participationService.remove(+id);
   }
 }

@@ -8,6 +8,7 @@ import { GradesService } from 'src/grades/grades.service';
 import { Participation } from 'src/participation/entities/participation.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { PaginationDto } from './dto/pagination.dto';
+import { ParticipationService } from 'src/participation/participation.service';
 
 @Injectable()
 export class StudentsService {
@@ -15,7 +16,8 @@ export class StudentsService {
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Participation) private participationRepository: Repository<Participation>,
     private gradesService: GradesService,
-    @InjectRepository(Program) private programsService: Repository<Program>
+    @InjectRepository(Program) private programsService: Repository<Program>,
+    private participationService: ParticipationService
   ) { }
 
   async create(createStudentDto: CreateStudentDto) {
@@ -32,13 +34,12 @@ export class StudentsService {
       if (grades) {
         await this.gradesService.create({ ...grades, year, studentId: newStudent.id });
       }
-      const participation = this.participationRepository.create({
-        student: newStudent,
-        program: currentProgram,
-        year,
+      await this.participationService.create({
+        studentId: newStudent.id,
+        programId: currentProgram.id,
         quarter,
-      });
-      await this.participationRepository.save(participation);
+        year
+      })
 
       return newStudent;
     } catch (error) {
@@ -47,26 +48,26 @@ export class StudentsService {
           where: { firstName: rest.firstName, lastName: rest.lastName, dob: rest.dob, school: rest.school },
         });
 
+        console.log(existingStudent)
+
         if (existingStudent) {
-          const existingParticipation = await this.participationRepository.findOne({
-            where: { student: existingStudent, program: currentProgram, year },
-          });
+          const { id } = existingStudent
 
-          if (!existingParticipation) {
-            const newParticipation = this.participationRepository.create({
-              student: existingStudent,
-              program: currentProgram,
-              year,
-              quarter,
-            });
-            await this.participationRepository.save(newParticipation);
+          const ep = await this.participationRepository.findOne({
+            where: { student: existingStudent, program: currentProgram, year, quarter }
+          })
 
-            if (grades) {
-              await this.gradesService.create({ ...grades, year, studentId: existingStudent.id });
-            }
-            return existingStudent;
-          } else {
-            throw new ConflictException('A participation with the same program and year already exists.');
+          console.log(ep)
+
+          await this.participationService.create({
+            studentId: id,
+            programId: currentProgram.id,
+            quarter,
+            year
+          })
+
+          if (grades) {
+            await this.gradesService.create({ ...grades, year, studentId: existingStudent.id });
           }
         }
       }
@@ -107,6 +108,7 @@ export class StudentsService {
       'student.firstName',
       'student.lastName',
       'student.dob',
+      'student.school',
       'student.country',
       'student.yearJoined'
     ])
@@ -135,12 +137,23 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
+    const {dob} = student
+    const date = new Date(dob)
+
+    const formattedDate = date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+    
+
     const grades = await this.gradesService.findOne(id);
 
     const participations = await this.participationRepository
       .createQueryBuilder('participation')
       .leftJoinAndSelect('participation.program', 'program')
       .select([
+        'participation.id',
         'participation.year',
         'participation.quarter',
         'program.program',
@@ -148,7 +161,7 @@ export class StudentsService {
       .where('participation.studentId = :studentId', { studentId: id })
       .getRawMany();
 
-    return { ...student, grades, participations };
+    return { ...student, dob:formattedDate, grades, participations };
   }
 
   async findByNames(name: string) {
@@ -174,7 +187,15 @@ export class StudentsService {
         }));
     }
 
-    const [students, total] = await queryBuilder.getManyAndCount();
+    const [students, total] = await queryBuilder
+      .select([
+        'student.id',
+        'student.firstName',
+        'student.lastName',
+        'student.dob',
+        'student.country',
+        'student.yearJoined'
+      ]).orderBy('student.firstName', 'ASC').getManyAndCount();
 
     return {
       count: total,

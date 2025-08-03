@@ -26,6 +26,7 @@ export class GradesService {
     try {
       return await this.gradesRepository.save(grade);
     } catch (error) {
+      console.log(error)
       if (error.code === '23505') {
         throw new ConflictException('A grade for this student and year already exists.');
       }

@@ -36,7 +36,7 @@ export class UploadsService {
             const transformedData = data.map(record => ({
                 firstName: record.firstName,
                 lastName: record.lastName,
-                dob: record.dob,
+                dob: Number(new Date().getFullYear() - new Date(record.dob).getFullYear()),
                 country: record.country,
                 program: record.program,
                 year: record.year,
@@ -89,7 +89,7 @@ export class UploadsService {
     private mapToCreateStudentDto(record: any, data): CreateStudentDto {
         return {
             school: record['SCHOOL'],
-            class: record['CLASS'],
+            currentClass: record['CLASS'],
             firstName: record['FIRST NAME'],
             lastName: record['LAST NAME'],
             dob: record['DOB'],

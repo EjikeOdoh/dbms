@@ -17,14 +17,19 @@ export class CreateStaffDto {
 
     @IsDate()
     @IsOptional()
-    dob?: Date;
+    startDate?: Date;
+
+    @IsDate()
+    @IsOptional()
+    endDate?: Date;
 
     @IsString()
     @IsOptional()
     address?: string;
 
-    @IsNumber()
-    yearJoined: number;
+    @IsString()
+    @IsOptional()
+    location: string;
 
     @IsString()
     @IsOptional()
@@ -32,5 +37,36 @@ export class CreateStaffDto {
 
     @IsBoolean()
     @IsOptional()
-    isActive?: boolean = true;
+    active?: boolean = true;
+
+    @IsString()
+    @IsOptional()
+    skillSet: string
+
+    @IsString()
+    @IsOptional()
+    cpName1: string
+
+
+    @IsString()
+    @IsOptional()
+    cpRel1: string
+
+
+    @IsString()
+    @IsOptional()
+    cpPhone1: string
+
+    @IsString()
+    @IsOptional()
+    cpName2: string
+
+    @IsString()
+    @IsOptional()
+    cpRel2: string
+
+    @IsString()
+    @IsOptional()
+    cpPhone2: string
+    
 }

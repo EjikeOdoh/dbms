@@ -11,7 +11,7 @@ export class Student {
   school: string;
 
   @Column({ length: 5, nullable: true })
-  class: string;
+  currentClass: string;
 
   //remember to change later
   @Column({ length: 50, nullable: false })

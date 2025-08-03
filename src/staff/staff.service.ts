@@ -26,7 +26,7 @@ export class StaffService {
       return await this.staffRepository.find()
     } catch (error) {
       console.log(error)
-      throw new InternalServerErrorException('An error occurred while creating this staff')
+      throw new InternalServerErrorException('An error occurred while getting this staff')
     }
   }
 

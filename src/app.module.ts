@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { StaffModule } from './staff/staff.module';
 import { TargetModule } from './target/target.module';
+import { VolunteersModule } from './volunteers/volunteers.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { TargetModule } from './target/target.module';
     UsersModule,
     StaffModule,
     TargetModule,
+    VolunteersModule,
   ],
   controllers: [],
   providers: [],
