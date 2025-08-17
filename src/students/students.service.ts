@@ -135,17 +135,7 @@ export class StudentsService {
     const student = await this.studentsRepository.findOne({ where: { id } });
     if (!student) {
       throw new NotFoundException(`Student with ID ${id} not found`);
-    }
-
-    const {dob} = student
-    const date = new Date(dob)
-
-    const formattedDate = date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-    
+    } 
 
     const grades = await this.gradesService.findOne(id);
 
@@ -159,9 +149,10 @@ export class StudentsService {
         'program.program',
       ])
       .where('participation.studentId = :studentId', { studentId: id })
+      .orderBy('participation.year','DESC')
       .getRawMany();
 
-    return { ...student, dob:formattedDate, grades, participations };
+    return { ...student, grades, participations };
   }
 
   async findByNames(name: string) {

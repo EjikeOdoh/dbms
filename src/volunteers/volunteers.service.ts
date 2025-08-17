@@ -1,26 +1,64 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateVolunteerDto } from './dto/create-volunteer.dto';
 import { UpdateVolunteerDto } from './dto/update-volunteer.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Volunteer } from './entities/volunteer.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class VolunteersService {
-  create(createVolunteerDto: CreateVolunteerDto) {
-    return 'This action adds a new volunteer';
+  constructor(
+    @InjectRepository(Volunteer) private volunteerRepository: Repository<Volunteer>
+  ) { }
+
+  async create(createVolunteerDto: CreateVolunteerDto) {
+    const newVolunteer = this.volunteerRepository.create(createVolunteerDto)
+    try {
+      return await this.volunteerRepository.save(newVolunteer)
+    } catch (err) {
+      console.log(err)
+      throw new InternalServerErrorException('An error occurred while creating this volunteer')
+    }
   }
 
-  findAll() {
-    return `This action returns all volunteers`;
+  async findAll() {
+    try {
+      return await this.volunteerRepository.find()
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while getting volunteers')
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} volunteer`;
+  async findOne(id: number) {
+    try {
+      return await this.volunteerRepository.findOne({
+        where: { id }
+      });
+
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('Volunteer record was not found')
+    }
   }
 
-  update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
-    return `This action updates a #${id} volunteer`;
+ async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
+    try {
+      await this.volunteerRepository.update(id, updateVolunteerDto)
+      return await this.findOne(id)
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while updating this volunteer record')
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} volunteer`;
+  async remove(id: number) {
+    try {
+      await this.volunteerRepository.delete(id)
+      return { delete: true }
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while deleting this volunteer record')
+    }
   }
 }

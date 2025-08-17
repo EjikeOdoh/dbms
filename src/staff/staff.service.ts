@@ -23,7 +23,15 @@ export class StaffService {
 
   async findAll() {
     try {
-      return await this.staffRepository.find()
+      const staff = await this.staffRepository.createQueryBuilder('staff').select([
+        'staff.id',
+        'staff.staffId',
+        'staff.firstName',
+        'staff.lastName',
+        'staff.active',
+        'staff.role'
+      ]).getMany()
+      return staff
     } catch (error) {
       console.log(error)
       throw new InternalServerErrorException('An error occurred while getting this staff')
@@ -32,10 +40,9 @@ export class StaffService {
 
   async findOne(id: number) {
     try {
-      return await this.staffRepository.findOne({
+    return  await this.staffRepository.findOne({
         where: { id }
       });
-
     } catch (error) {
       console.log(error)
       throw new InternalServerErrorException('Staff record was not found')

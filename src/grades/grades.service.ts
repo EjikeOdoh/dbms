@@ -57,6 +57,7 @@ export class GradesService {
       .createQueryBuilder('grade')
       .leftJoin('grade.student', 'student')
       .where(`student.id=${id}`)
+      .orderBy('grade.year', 'DESC')
       .getMany()
   }
 

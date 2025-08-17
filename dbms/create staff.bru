@@ -7,18 +7,23 @@ meta {
 post {
   url: http://localhost:3000/staff
   body: json
-  auth: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1NDI1OTkxOX0.KwFPsAwUuF50OIQ77cgJC5sDPsaj1sIV9k7SqXGjKpk
 }
 
 body:json {
    {
-    "staffId": "I0415",
-    "firstName": "Ejike",
-    "lastName": "Odoh",
-    "dob": "1995-10-23",
-    "address": "Chika, Airport Rd, Abuja",
+    "staffId": "I0401",
+    "firstName": "Silifat",
+    "lastName": "Yusuf",
+    "startDate": "2000-10-23",
+    "address": "Kubwa",
     "yearJoined": 2024,
-    "role": "Head Instructor",
-    "isActive": true
+    "role": "Instructor",
+    "active": true,
+     "skillSet":"Software Development"
   }
 }
