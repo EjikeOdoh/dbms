@@ -62,28 +62,28 @@ export class VolunteersService {
 
   async findOne(id: number) {
     const volunteer = await this.volunteerRepository.findOne({ where: { id } })
-    let participation = []
+    let participations = []
 
     if (!volunteer) {
       throw new NotFoundException(`Volunteer with ID ${id} not found`);
     }
 
     if (volunteer.type === 'PROGRAM') {
-      participation = await this.vp
+      participations = await this.vp
         .createQueryBuilder('volunteer_participation')
         .leftJoinAndSelect('volunteer_participation.program', 'program')
         .select([
-          'volunteer_participation.id',
-          'volunteer_participation.year',
-          'volunteer_participation.quarter',
-          'program.program'
+          'volunteer_participation.id AS id',
+          'volunteer_participation.year AS year',
+          'volunteer_participation.quarter AS quarter',
+          'program.program AS program'
         ])
         .where('volunteer_participation.id = :volunteerId', { volunteerId: id })
         .orderBy('volunteer_participation.year', 'DESC')
         .getRawMany()
     }
 
-    return { ...volunteer, ...participation }
+    return { ...volunteer, participations }
   }
 
   async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
