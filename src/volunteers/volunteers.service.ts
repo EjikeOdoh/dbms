@@ -74,11 +74,12 @@ export class VolunteersService {
         .leftJoinAndSelect('volunteer_participation.program', 'program')
         .select([
           'volunteer_participation.id AS id',
+          'volunteer_participation.volunteerId AS volunteerId',
           'volunteer_participation.year AS year',
           'volunteer_participation.quarter AS quarter',
           'program.program AS program'
         ])
-        .where('volunteer_participation.id = :volunteerId', { volunteerId: id })
+        .where(`volunteer_participation.volunteerId=${id}`)
         .orderBy('volunteer_participation.year', 'DESC')
         .getRawMany()
     }

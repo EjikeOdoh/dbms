@@ -48,6 +48,7 @@ export class VolunteerParticipationService {
     return await this.vp.find();
   }
 
+  // Fix this later
   async findOne(id: number) {
     return await this.vp
       .createQueryBuilder('volunteer_participation')
