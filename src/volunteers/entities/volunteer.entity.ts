@@ -1,11 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm"
+import { ProgramType } from "src/programs/entities/program.entity"
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm"
 
 export enum VolunteerType {
         REGULAR = 'REGULAR',
         PROGRAM = 'PROGRAM'
 }
 
-@Entity()
+@Entity('volunteers')
+@Unique(['firstName', 'lastName', 'phone'])
 export class Volunteer {
         @PrimaryGeneratedColumn()
         id: number
@@ -23,7 +25,7 @@ export class Volunteer {
         })
         type: VolunteerType
 
-        @Column({ default: true, nullable: true })
+        @Column({ default: false, nullable: true })
         active: boolean
 
         @Column({ nullable: true })

@@ -1,21 +1,49 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateVolunteerDto } from './dto/create-volunteer.dto';
 import { UpdateVolunteerDto } from './dto/update-volunteer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Volunteer } from './entities/volunteer.entity';
 import { Repository } from 'typeorm';
+import { VolunteerParticipation } from 'src/volunteer-participation/entities/volunteer-participation.entity';
+import { Program } from 'src/programs/entities/program.entity';
+import { VolunteerParticipationService } from 'src/volunteer-participation/volunteer-participation.service';
 
 @Injectable()
 export class VolunteersService {
   constructor(
-    @InjectRepository(Volunteer) private volunteerRepository: Repository<Volunteer>
+    @InjectRepository(Volunteer) private volunteerRepository: Repository<Volunteer>,
+    @InjectRepository(VolunteerParticipation) private vp: Repository<VolunteerParticipation>,
+    @InjectRepository(Program) private programRepository: Repository<Program>,
+    private participationService: VolunteerParticipationService
   ) { }
 
   async create(createVolunteerDto: CreateVolunteerDto) {
-    const newVolunteer = this.volunteerRepository.create(createVolunteerDto)
+    const { quarter, year, program, ...rest } = createVolunteerDto
+    const volunteer = this.volunteerRepository.create(rest)
+
     try {
-      return await this.volunteerRepository.save(newVolunteer)
+      const newVolunteer = await this.volunteerRepository.save(volunteer)
+      if (newVolunteer.type === 'PROGRAM') {
+
+        const currentProgram = await this.programRepository.findOne({ where: { program } });
+        if (!currentProgram) {
+          throw new NotFoundException(`Program with name ${program} not found`);
+        }
+
+        await this.participationService.create({
+          volunteerId: newVolunteer.id,
+          programId: currentProgram.id,
+          quarter,
+          year
+        })
+      }
+
+      return newVolunteer
+
     } catch (err) {
+      if (err.code === '23505') {
+        throw new Error("this person already exists")
+      }
       console.log(err)
       throw new InternalServerErrorException('An error occurred while creating this volunteer')
     }
@@ -23,7 +51,9 @@ export class VolunteersService {
 
   async findAll() {
     try {
-      return await this.volunteerRepository.find()
+      return await this.volunteerRepository.find({
+        select: ['id', 'firstName', 'lastName', 'type', 'active', 'location']
+      })
     } catch (error) {
       console.log(error)
       throw new InternalServerErrorException('An error occurred while getting volunteers')
@@ -31,18 +61,32 @@ export class VolunteersService {
   }
 
   async findOne(id: number) {
-    try {
-      return await this.volunteerRepository.findOne({
-        where: { id }
-      });
+    const volunteer = await this.volunteerRepository.findOne({ where: { id } })
+    let participation = []
 
-    } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('Volunteer record was not found')
+    if (!volunteer) {
+      throw new NotFoundException(`Volunteer with ID ${id} not found`);
     }
+
+    if (volunteer.type === 'PROGRAM') {
+      participation = await this.vp
+        .createQueryBuilder('volunteer_participation')
+        .leftJoinAndSelect('volunteer_participation.program', 'program')
+        .select([
+          'volunteer_participation.id',
+          'volunteer_participation.year',
+          'volunteer_participation.quarter',
+          'program.program'
+        ])
+        .where('volunteer_participation.id = :volunteerId', { volunteerId: id })
+        .orderBy('volunteer_participation.year', 'DESC')
+        .getRawMany()
+    }
+
+    return { ...volunteer, ...participation }
   }
 
- async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
+  async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
     try {
       await this.volunteerRepository.update(id, updateVolunteerDto)
       return await this.findOne(id)

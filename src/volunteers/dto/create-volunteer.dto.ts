@@ -1,4 +1,6 @@
-import { IsBoolean, IsDate, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDate, IsEnum, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { VolunteerType } from "../entities/volunteer.entity";
+import { ProgramType } from "src/programs/entities/program.entity";
 
 export class CreateVolunteerDto {
     
@@ -11,6 +13,9 @@ export class CreateVolunteerDto {
         @MinLength(2)
         @MaxLength(50)
         lastName: string;
+
+        @IsEnum(VolunteerType)
+        type: VolunteerType;
     
         @IsDate()
         @IsOptional()
@@ -28,9 +33,14 @@ export class CreateVolunteerDto {
         @IsOptional()
         location: string;
     
-        @IsString()
         @IsOptional()
-        program?: string;
+        program?: ProgramType;
+
+        @IsOptional()
+        quarter: number
+
+        @IsOptional()
+        year: number
     
         @IsBoolean()
         @IsOptional()
