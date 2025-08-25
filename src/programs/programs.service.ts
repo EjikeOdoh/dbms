@@ -18,7 +18,7 @@ export class ProgramsService {
       return await this.programsRepository.save(program)
     } catch (error) {
       if (error.code === '23505') {
-        throw new ConflictException('This program already exist.');
+        throw new ConflictException('This program already exists.');
       }
       throw new InternalServerErrorException('An unexpected error occurred while creating this program.');
     }

@@ -1,26 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Partner } from './entities/partner.entity';
+import { Repository } from 'typeorm';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class PartnersService {
-  create(createPartnerDto: CreatePartnerDto) {
-    return 'This action adds a new partner';
+  constructor(
+    @InjectRepository(Partner) private partnerRepository: Repository<Partner>,
+    private readonly cloudinaryService: CloudinaryService
+  ) { }
+  async create(createPartnerDto: CreatePartnerDto) {
+    const partner = this.partnerRepository.create(createPartnerDto)
+    try {
+      return await this.partnerRepository.save(partner)
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('This partner already exists.');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred while creating this program.');
+    }
   }
 
-  findAll() {
-    return `This action returns all partners`;
+  async findAll() {
+    return await this.partnerRepository.find({
+      select: ['id', 'name', 'logoUrl', 'isActive']
+    })
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} partner`;
+  async findOne(id: number) {
+    return await this.partnerRepository.findOne({ where: { id } });
   }
 
-  update(id: number, updatePartnerDto: UpdatePartnerDto) {
-    return `This action updates a #${id} partner`;
+  async update(id: number, updatePartnerDto: UpdatePartnerDto) {
+    try {
+      const { logoPublicId } = await this.findOne(id)
+      await this.partnerRepository.update(id, updatePartnerDto)
+      await this.cloudinaryService.deleteImage(logoPublicId)
+
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while updating this partner record')
+
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} partner`;
+  async remove(id: number) {
+    try {
+      await this.partnerRepository.delete(id);
+      return { deleted: true };
+    } catch (error) {
+      console.log(error)
+      throw new InternalServerErrorException('An error occurred while deleting this partner record')
+    }
   }
 }

@@ -1,7 +1,7 @@
-import { File } from "buffer";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity('partners')
+@Unique(['name'])
 export class Partner {
     @PrimaryGeneratedColumn()
     id: number
@@ -28,4 +28,10 @@ export class Partner {
 
     @Column({ nullable: true })
     linkedIn: string
+
+    @Column({ nullable: true })
+    year: number
+
+    @Column({ default: true })
+    isActive: boolean
 }
