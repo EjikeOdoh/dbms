@@ -5,11 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Partner } from './entities/partner.entity';
 import { Repository } from 'typeorm';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { Sponsorship } from 'src/sponsorship/entities/sponsorship.entity';
 
 @Injectable()
 export class PartnersService {
   constructor(
     @InjectRepository(Partner) private partnerRepository: Repository<Partner>,
+    @InjectRepository(Sponsorship) private sponsorshipRepo: Repository<Sponsorship>,
     private readonly cloudinaryService: CloudinaryService
   ) { }
   async create(createPartnerDto: CreatePartnerDto) {
@@ -31,12 +33,25 @@ export class PartnersService {
   }
 
   async findOne(id: number) {
-    return await this.partnerRepository.findOne({ where: { id } });
+    const partner = await this.partnerRepository.findOne({ where: { id } });
+    const sponsorships = await this.sponsorshipRepo
+      .createQueryBuilder('sponsorship')
+      .leftJoinAndSelect('sponsorship.program', 'program')
+      .select([
+        'sponsorship.id AS id',
+        'sponsorship.year AS year',
+        'sponsorship.amount AS amount',
+        'program.program As program'
+      ])
+      .where('sponsorship.partnerId = :partnerId', { partnerId: id })
+      .orderBy('sponsorship.year', 'DESC')
+      .getRawMany()
+    return { ...partner, sponsorships }
   }
 
   async update(id: number, updatePartnerDto: UpdatePartnerDto) {
     try {
-      const { logoPublicId } = await this.findOne(id)
+      const { logoPublicId } = await this.partnerRepository.findOne({ where: { id } })
       await this.partnerRepository.update(id, updatePartnerDto)
       await this.cloudinaryService.deleteImage(logoPublicId)
 

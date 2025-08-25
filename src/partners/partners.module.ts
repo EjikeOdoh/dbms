@@ -4,10 +4,11 @@ import { PartnersController } from './partners.controller';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Partner } from './entities/partner.entity';
+import { Sponsorship } from 'src/sponsorship/entities/sponsorship.entity';
 
 @Module({
   controllers: [PartnersController],
   providers: [PartnersService],
-  imports: [TypeOrmModule.forFeature([Partner]),CloudinaryModule]
+  imports: [TypeOrmModule.forFeature([Partner, Sponsorship]), CloudinaryModule]
 })
-export class PartnersModule {}
+export class PartnersModule { }
