@@ -5,6 +5,7 @@ export enum ProgramType {
   CBC = 'CBC',
   SSC = 'SSC',
   DSC = 'DSC',
+  ALL = 'ALL'
 }
 
 @Entity('programs')

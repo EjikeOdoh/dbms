@@ -1,4 +1,4 @@
-import { IsBoolean, IsDate, IsEnum, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsDate, IsEnum, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
 import { VolunteerType } from "../entities/volunteer.entity";
 import { ProgramType } from "src/programs/entities/program.entity";
 
@@ -48,7 +48,7 @@ export class CreateVolunteerDto {
     
         @IsString()
         @IsOptional()
-        skillSet: string
+        skillSet?: string
     
         @IsString()
         @IsOptional()
@@ -75,4 +75,10 @@ export class CreateVolunteerDto {
         @IsString()
         @IsOptional()
         cpPhone2: string
+}
+
+
+export class ResponseAfterUpdate extends CreateVolunteerDto {
+        @IsArray()
+        participation: []
 }

@@ -58,7 +58,6 @@ export class ParticipationService {
       .leftJoin('participation.program', 'program');
 
 
-
     if (year) {
       queryBuilder.andWhere('participation.year = :year', { year });
       uniqueCount = await this.studentsRepository.count({ where: { yearJoined: year } })
@@ -98,6 +97,15 @@ export class ParticipationService {
       .orderBy('participation.year', 'ASC')
       .getRawMany();
 
+    // Get count by country
+    const totalCountByCountry = await this.studentsRepository.createQueryBuilder('student')
+    .select([
+      'student.country AS country',
+      'COUNT(student.id) AS count'
+    ])
+    .groupBy('student.country')
+    .getRawMany();
+
     return {
       year: year ?? 'All',
       totalCount,
@@ -105,6 +113,7 @@ export class ParticipationService {
       countByProgram,
       uniqueCount,
       countByYear,
+      totalCountByCountry,
       target: target ?? 0,
     };
   }

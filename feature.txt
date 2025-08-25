@@ -1,0 +1,15 @@
+PARTNER INFORMATION
+    name
+    desc
+    logo
+    twitter handle
+    linkedIn handle
+    program sponsored
+    year
+    amount
+
+
+SPONSORSHIP
+partner 
+program
+year

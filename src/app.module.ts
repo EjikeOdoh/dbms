@@ -12,6 +12,8 @@ import { StaffModule } from './staff/staff.module';
 import { TargetModule } from './target/target.module';
 import { VolunteersModule } from './volunteers/volunteers.module';
 import { VolunteerParticipationModule } from './volunteer-participation/volunteer-participation.module';
+import { PartnersModule } from './partners/partners.module';
+import { SponsorshipModule } from './sponsorship/sponsorship.module';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { VolunteerParticipationModule } from './volunteer-participation/voluntee
     TargetModule,
     VolunteersModule,
     VolunteerParticipationModule,
+    PartnersModule,
+    SponsorshipModule,
   ],
   controllers: [],
   providers: [],

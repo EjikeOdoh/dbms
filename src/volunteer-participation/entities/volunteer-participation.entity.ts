@@ -8,7 +8,9 @@ export class VolunteerParticipation {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Volunteer, (volunteer) => volunteer.id, { nullable: false, onDelete: 'CASCADE' })
+    @ManyToOne(() => Volunteer, (volunteer) => volunteer.participations, {
+        onDelete: 'CASCADE'
+    })
     volunteer: Volunteer;
 
     @ManyToOne(() => Program, (program) => program.id, { nullable: false, onDelete: 'CASCADE' })

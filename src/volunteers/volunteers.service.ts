@@ -61,41 +61,37 @@ export class VolunteersService {
   }
 
   async findOne(id: number) {
-    const volunteer = await this.volunteerRepository.findOne({ where: { id } })
-    let participations = []
+    const volunteer = await this.volunteerRepository.findOne({
+      where: { id },
+      relations: ['participations'],
+    })
 
     if (!volunteer) {
       throw new NotFoundException(`Volunteer with ID ${id} not found`);
     }
-
-    if (volunteer.type === 'PROGRAM') {
-      participations = await this.vp
-        .createQueryBuilder('volunteer_participation')
-        .leftJoinAndSelect('volunteer_participation.program', 'program')
-        .select([
-          'volunteer_participation.id AS id',
-          'volunteer_participation.volunteerId AS volunteerId',
-          'volunteer_participation.year AS year',
-          'volunteer_participation.quarter AS quarter',
-          'program.program AS program'
-        ])
-        .where(`volunteer_participation.volunteerId=${id}`)
-        .orderBy('volunteer_participation.year', 'DESC')
-        .getRawMany()
-    }
-
-    return { ...volunteer, participations }
+    console.log(volunteer)
+    return volunteer
   }
 
   async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
     try {
-      await this.volunteerRepository.update(id, updateVolunteerDto)
-      return await this.findOne(id)
+     
+      await this.volunteerRepository
+        .createQueryBuilder()
+        .update(Volunteer)
+        .set(updateVolunteerDto)
+        .where("id = :id", { id })
+        .execute();
+  
+      return await this.findOne(id);
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while updating this volunteer record')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while updating this volunteer record',
+      );
     }
   }
+  
 
   async remove(id: number) {
     try {
