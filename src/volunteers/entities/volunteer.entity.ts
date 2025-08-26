@@ -1,5 +1,3 @@
-import { ProgramType } from "src/programs/entities/program.entity"
-import { VolunteerParticipation } from "src/volunteer-participation/entities/volunteer-participation.entity"
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from "typeorm"
 
 export enum VolunteerType {
@@ -67,8 +65,5 @@ export class Volunteer {
 
         @Column({ nullable: true })
         cpPhone2: string
-
-        @OneToMany(() => VolunteerParticipation, (vp) => vp.volunteer, { nullable: false, onDelete: 'CASCADE' })
-        participations: VolunteerParticipation[];
 
 }

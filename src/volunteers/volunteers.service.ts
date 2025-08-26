@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Volunteer } from './entities/volunteer.entity';
 import { Repository } from 'typeorm';
 import { VolunteerParticipation } from 'src/volunteer-participation/entities/volunteer-participation.entity';
-import { Program } from 'src/programs/entities/program.entity';
 import { VolunteerParticipationService } from 'src/volunteer-participation/volunteer-participation.service';
 
 @Injectable()
@@ -13,26 +12,19 @@ export class VolunteersService {
   constructor(
     @InjectRepository(Volunteer) private volunteerRepository: Repository<Volunteer>,
     @InjectRepository(VolunteerParticipation) private vp: Repository<VolunteerParticipation>,
-    @InjectRepository(Program) private programRepository: Repository<Program>,
     private participationService: VolunteerParticipationService
   ) { }
 
   async create(createVolunteerDto: CreateVolunteerDto) {
-    const { quarter, year, program, ...rest } = createVolunteerDto
+    const { quarter, year, programId, ...rest } = createVolunteerDto
     const volunteer = this.volunteerRepository.create(rest)
 
     try {
       const newVolunteer = await this.volunteerRepository.save(volunteer)
       if (newVolunteer.type === 'PROGRAM') {
-
-        const currentProgram = await this.programRepository.findOne({ where: { program } });
-        if (!currentProgram) {
-          throw new NotFoundException(`Program with name ${program} not found`);
-        }
-
         await this.participationService.create({
           volunteerId: newVolunteer.id,
-          programId: currentProgram.id,
+          programId,
           quarter,
           year
         })
@@ -61,29 +53,31 @@ export class VolunteersService {
   }
 
   async findOne(id: number) {
-    const volunteer = await this.volunteerRepository.findOne({
-      where: { id },
-      relations: ['participations'],
-    })
+    const volunteer = await this.volunteerRepository.findOneOrFail({ where: { id } })
 
-    if (!volunteer) {
-      throw new NotFoundException(`Volunteer with ID ${id} not found`);
+    const participations = await this.vp
+      .createQueryBuilder('volunteer-participation')
+      .leftJoinAndSelect('volunteer-participation.program', 'program')
+      .select([
+        'volunteer-participation.id AS id',
+        'volunteer-participation.year AS year',
+        'volunteer-participation.quarter AS quarter',
+        'program.program AS program',
+
+      ])
+      .where('volunteer-participation.volunteerId = :volunteerId', { volunteerId: id })
+      .orderBy('volunteer-participation.year', 'DESC')
+      .getRawMany()
+
+    return { ...volunteer, 
+      participations 
     }
-    console.log(volunteer)
-    return volunteer
   }
 
   async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
     try {
-     
-      await this.volunteerRepository
-        .createQueryBuilder()
-        .update(Volunteer)
-        .set(updateVolunteerDto)
-        .where("id = :id", { id })
-        .execute();
-  
-      return await this.findOne(id);
+      await this.volunteerRepository.update(id, updateVolunteerDto)
+      return this.volunteerRepository.findOne({ where: { id } });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
@@ -91,7 +85,7 @@ export class VolunteersService {
       );
     }
   }
-  
+
 
   async remove(id: number) {
     try {

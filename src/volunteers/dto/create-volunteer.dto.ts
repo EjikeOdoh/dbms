@@ -34,7 +34,7 @@ export class CreateVolunteerDto {
         location: string;
     
         @IsOptional()
-        program?: ProgramType;
+        programId?: number;
 
         @IsOptional()
         quarter: number
@@ -77,8 +77,3 @@ export class CreateVolunteerDto {
         cpPhone2: string
 }
 
-
-export class ResponseAfterUpdate extends CreateVolunteerDto {
-        @IsArray()
-        participation: []
-}
