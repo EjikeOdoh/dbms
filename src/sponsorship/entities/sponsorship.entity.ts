@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
+import { Currency } from '../dto/create-sponsorship.dto';
 
 @Entity('sponsorship')
 @Unique(['partner', 'program', 'year'])
@@ -31,4 +32,10 @@ export class Sponsorship {
 
   @Column({ nullable: true })
   amount: number;
+
+  @Column({ nullable: true, type: 'enum', enum: Currency })
+  currency: Currency;
+
+  @Column({ nullable: true })
+  inKindDonation: string;
 }
