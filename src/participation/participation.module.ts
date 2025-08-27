@@ -7,11 +7,13 @@ import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { TargetModule } from 'src/target/target.module';
 
-
 @Module({
   controllers: [ParticipationController],
   providers: [ParticipationService],
-  imports: [TypeOrmModule.forFeature([Participation, Student, Program]), TargetModule],
-  exports:[ParticipationService]
+  imports: [
+    TypeOrmModule.forFeature([Participation, Student, Program]),
+    TargetModule,
+  ],
+  exports: [ParticipationService],
 })
 export class ParticipationModule {}

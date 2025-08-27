@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Unique } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  Unique,
+} from 'typeorm';
 import { Student } from '../../students/entities/student.entity';
 
 @Entity('grades')
@@ -7,7 +13,10 @@ export class Grade {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Student, (student) => student.id, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Student, (student) => student.id, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   student: Student;
 
   @Column({ type: 'varchar', length: 1, nullable: true })

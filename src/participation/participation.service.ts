@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateParticipationDto } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,63 +16,70 @@ import { TargetService } from 'src/target/target.service';
 @Injectable()
 export class ParticipationService {
   constructor(
-    @InjectRepository(Participation) private participationRepository: Repository<Participation>,
+    @InjectRepository(Participation)
+    private participationRepository: Repository<Participation>,
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Program) private programsRepository: Repository<Program>,
-    private targetService: TargetService
-  ) { }
+    private targetService: TargetService,
+  ) {}
 
   async create(createParticipationDto: CreateParticipationDto) {
     const { studentId, programId, ...rest } = createParticipationDto;
 
-    const student = await this.studentsRepository.findOne({ where: { id: studentId } })
+    const student = await this.studentsRepository.findOne({
+      where: { id: studentId },
+    });
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
 
-    const p = await this.programsRepository.findOne({ where: { id: programId } })
+    const p = await this.programsRepository.findOne({
+      where: { id: programId },
+    });
     if (!p) {
-      throw new NotFoundException(`Program not found`)
+      throw new NotFoundException(`Program not found`);
     }
 
     const participation = this.participationRepository.create({
       ...rest,
       student,
-      program: p
-    })
+      program: p,
+    });
 
     try {
-      return await this.participationRepository.save(participation)
+      return await this.participationRepository.save(participation);
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An unexpected error occurred while creating this record.');
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating this record.',
+      );
     }
   }
 
   async getStats(year?: number) {
-
     let target: number;
 
     // Get unique count
-    let uniqueCount = await this.studentsRepository.count()
+    let uniqueCount = await this.studentsRepository.count();
 
     const queryBuilder = this.participationRepository
       .createQueryBuilder('participation')
       .leftJoin('participation.student', 'student')
       .leftJoin('participation.program', 'program');
 
-
     if (year) {
       queryBuilder.andWhere('participation.year = :year', { year });
-      uniqueCount = await this.studentsRepository.count({ where: { yearJoined: year } })
-      target = await this.targetService.findTargetByYear(year)
+      uniqueCount = await this.studentsRepository.count({
+        where: { yearJoined: year },
+      });
+      target = await this.targetService.findTargetByYear(year);
     }
 
     // Get count by country
     const countByCountry = await queryBuilder
       .select([
         'student.country AS country',
-        'COUNT(participation.id) AS count'
+        'COUNT(participation.id) AS count',
       ])
       .groupBy('student.country')
       .getRawMany();
@@ -77,11 +88,10 @@ export class ParticipationService {
     const countByProgram = await queryBuilder
       .select([
         'program.program AS program',
-        'COUNT(participation.id) AS count'
+        'COUNT(participation.id) AS count',
       ])
       .groupBy('program.program')
       .getRawMany();
-
 
     // Get total count
     const totalCount = await queryBuilder.getCount();
@@ -91,20 +101,18 @@ export class ParticipationService {
       .createQueryBuilder('participation')
       .select([
         'participation.year AS year',
-        'COUNT(participation.id) AS count'
+        'COUNT(participation.id) AS count',
       ])
       .groupBy('participation.year')
       .orderBy('participation.year', 'ASC')
       .getRawMany();
 
     // Get count by country
-    const totalCountByCountry = await this.studentsRepository.createQueryBuilder('student')
-    .select([
-      'student.country AS country',
-      'COUNT(student.id) AS count'
-    ])
-    .groupBy('student.country')
-    .getRawMany();
+    const totalCountByCountry = await this.studentsRepository
+      .createQueryBuilder('student')
+      .select(['student.country AS country', 'COUNT(student.id) AS count'])
+      .groupBy('student.country')
+      .getRawMany();
 
     return {
       year: year ?? 'All',
@@ -133,16 +141,18 @@ export class ParticipationService {
         'student.dob AS dob',
         'student.country AS country',
         'program.program AS program',
-
       ]);
 
-
     if (filterDto?.year) {
-      queryBuilder.andWhere('participation.year = :year', { year: filterDto.year });
+      queryBuilder.andWhere('participation.year = :year', {
+        year: filterDto.year,
+      });
     }
 
     if (filterDto?.program) {
-      queryBuilder.andWhere('program.program = :program', { program: filterDto.program });
+      queryBuilder.andWhere('program.program = :program', {
+        program: filterDto.program,
+      });
     }
 
     const rawResults = await queryBuilder
@@ -159,21 +169,21 @@ export class ParticipationService {
       dob: result.dob,
       country: result.country,
       program: result.program,
-      count: result.count
+      count: result.count,
     }));
   }
 
   async findOne(id: number) {
-    return this.participationRepository.findOne({ where: { id } })
+    return this.participationRepository.findOne({ where: { id } });
   }
 
   async update(id: number, updateParticipationDto: UpdateParticipationDto) {
-    await this.participationRepository.update(id, updateParticipationDto)
+    await this.participationRepository.update(id, updateParticipationDto);
     return this.findOne(id);
   }
 
   async remove(id: number) {
-    await this.participationRepository.delete(id)
-    return { deleted: true }
+    await this.participationRepository.delete(id);
+    return { deleted: true };
   }
 }

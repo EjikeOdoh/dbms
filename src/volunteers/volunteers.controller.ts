@@ -1,11 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { VolunteersService } from './volunteers.service';
 import { CreateVolunteerDto } from './dto/create-volunteer.dto';
 import { UpdateVolunteerDto } from './dto/update-volunteer.dto';
 
 @Controller('volunteers')
 export class VolunteersController {
-  constructor(private readonly volunteersService: VolunteersService) { }
+  constructor(private readonly volunteersService: VolunteersService) {}
 
   @Post()
   async create(@Body() createVolunteerDto: CreateVolunteerDto) {
@@ -23,7 +31,10 @@ export class VolunteersController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateVolunteerDto: UpdateVolunteerDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateVolunteerDto: UpdateVolunteerDto,
+  ) {
     return await this.volunteersService.update(+id, updateVolunteerDto);
   }
 

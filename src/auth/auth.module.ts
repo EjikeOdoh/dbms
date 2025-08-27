@@ -14,12 +14,12 @@ import { RolesGuard } from './guard/roles.guard';
     AuthService,
     {
       provide: APP_GUARD,
-      useClass: AuthGuard
+      useClass: AuthGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: RolesGuard
-    }
+      useClass: RolesGuard,
+    },
   ],
   imports: [
     ConfigModule.forRoot(),
@@ -33,6 +33,6 @@ import { RolesGuard } from './guard/roles.guard';
       inject: [ConfigService],
     }),
   ],
-  exports: [AuthService]
+  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

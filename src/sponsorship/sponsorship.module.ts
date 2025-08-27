@@ -9,6 +9,6 @@ import { Program } from 'src/programs/entities/program.entity';
 @Module({
   controllers: [SponsorshipController],
   providers: [SponsorshipService],
-  imports:[TypeOrmModule.forFeature([Sponsorship, Partner, Program])]
+  imports: [TypeOrmModule.forFeature([Sponsorship, Partner, Program])],
 })
 export class SponsorshipModule {}

@@ -7,27 +7,28 @@ export class UsersService {
   private readonly users = [
     {
       userId: 1,
-      name: "admin",
-      password: "password",
-      role: 'admin'
+      name: 'admin',
+      password: 'password',
+      role: 'admin',
     },
 
     {
       userId: 2,
-      name: "editor",
-      password: "password1",
-      role: 'editor'
+      name: 'editor',
+      password: 'password1',
+      role: 'editor',
     },
 
     {
       userId: 3,
-      name: "viewer",
-      password: "password2",
-      role: 'viewer'
-    }
-  ]
+      name: 'viewer',
+      password: 'password2',
+      role: 'viewer',
+    },
+  ];
 
   create(createUserDto: CreateUserDto) {
+    console.log(createUserDto);
     return 'This action adds a new user';
   }
 
@@ -36,22 +37,23 @@ export class UsersService {
   }
 
   async findByName(name: string) {
-    const user = this.users.find(user => user.name === name)
+    const user = this.users.find((user) => user.name === name);
     if (!user) {
-      throw new NotFoundException('User not found')
+      throw new NotFoundException('User not found');
     }
-    return user
+    return user;
   }
 
   async findOne(id: number) {
-    const user = this.users.find(user => user.userId === id)
+    const user = this.users.find((user) => user.userId === id);
     if (!user) {
-      throw new NotFoundException('User not found')
+      throw new NotFoundException('User not found');
     }
-    return user
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
+    console.log(updateUserDto);
     return `This action updates a #${id} user`;
   }
 

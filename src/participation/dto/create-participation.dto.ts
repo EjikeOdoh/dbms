@@ -3,15 +3,15 @@ import { IsInt, IsNotEmpty } from 'class-validator';
 export class CreateParticipationDto {
   @IsInt()
   @IsNotEmpty()
-  studentId: number; 
+  studentId: number;
 
   @IsInt()
   @IsNotEmpty()
-  programId: number; 
+  programId: number;
 
   @IsInt()
   @IsNotEmpty()
-  year: number; 
+  year: number;
 
   @IsInt()
   @IsNotEmpty()

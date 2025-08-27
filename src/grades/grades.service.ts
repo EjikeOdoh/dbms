@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,11 +15,13 @@ import { Student } from 'src/students/entities/student.entity';
 export class GradesService {
   constructor(
     @InjectRepository(Grade) private gradesRepository: Repository<Grade>,
-    @InjectRepository(Student) private studentsRepository: Repository<Student>
-  ) { }
+    @InjectRepository(Student) private studentsRepository: Repository<Student>,
+  ) {}
   async create(createGradeDto: CreateGradeDto) {
     const { studentId, ...rest } = createGradeDto;
-    const student = await this.studentsRepository.findOne({ where: { id: studentId } })
+    const student = await this.studentsRepository.findOne({
+      where: { id: studentId },
+    });
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
@@ -26,15 +33,18 @@ export class GradesService {
     try {
       return await this.gradesRepository.save(grade);
     } catch (error) {
-      console.log(error)
+      console.log(error);
       if (error.code === '23505') {
-        throw new ConflictException('A grade for this student and year already exists.');
+        throw new ConflictException(
+          'A grade for this student and year already exists.',
+        );
       }
-      console.log('Grade Error:', error)
-      throw new InternalServerErrorException('An unexpected error occurred while creating the grade.');
+      console.log('Grade Error:', error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating the grade.',
+      );
     }
   }
-
 
   async findAll() {
     return this.gradesRepository
@@ -58,16 +68,16 @@ export class GradesService {
       .leftJoin('grade.student', 'student')
       .where(`student.id=${id}`)
       .orderBy('grade.year', 'DESC')
-      .getMany()
+      .getMany();
   }
 
   async update(id: number, updateGradeDto: UpdateGradeDto) {
-    await this.gradesRepository.update(id, updateGradeDto)
-    return this.gradesRepository.findOne({ where: { id } })
+    await this.gradesRepository.update(id, updateGradeDto);
+    return this.gradesRepository.findOne({ where: { id } });
   }
 
   async remove(id: number) {
-    await this.gradesRepository.delete(id)
-    return { deleted: true }
+    await this.gradesRepository.delete(id);
+    return { deleted: true };
   }
 }

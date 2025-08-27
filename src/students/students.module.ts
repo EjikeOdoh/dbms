@@ -10,10 +10,13 @@ import { Grade } from 'src/grades/entities/grade.entity';
 import { ParticipationModule } from 'src/participation/participation.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Student,Participation, Program, Grade]), GradesModule, ParticipationModule],
-  exports:[StudentsService, TypeOrmModule],
+  imports: [
+    TypeOrmModule.forFeature([Student, Participation, Program, Grade]),
+    GradesModule,
+    ParticipationModule,
+  ],
+  exports: [StudentsService, TypeOrmModule],
   controllers: [StudentsController],
   providers: [StudentsService],
 })
-export class StudentsModule {
-}
+export class StudentsModule {}

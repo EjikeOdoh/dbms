@@ -8,64 +8,75 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class StaffService {
   constructor(
-    @InjectRepository(Staff) private staffRepository: Repository<Staff>
-  ) { }
+    @InjectRepository(Staff) private staffRepository: Repository<Staff>,
+  ) {}
 
   async create(createStaffDto: CreateStaffDto) {
-    const newStaff = this.staffRepository.create(createStaffDto)
+    const newStaff = this.staffRepository.create(createStaffDto);
     try {
-      return await this.staffRepository.save(newStaff)
+      return await this.staffRepository.save(newStaff);
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while creating this staff')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while creating this staff',
+      );
     }
   }
 
   async findAll() {
     try {
-      const staff = await this.staffRepository.createQueryBuilder('staff').select([
-        'staff.id',
-        'staff.staffId',
-        'staff.firstName',
-        'staff.lastName',
-        'staff.active',
-        'staff.role'
-      ]).getMany()
-      return staff
+      const staff = await this.staffRepository
+        .createQueryBuilder('staff')
+        .select([
+          'staff.id',
+          'staff.staffId',
+          'staff.firstName',
+          'staff.lastName',
+          'staff.active',
+          'staff.role',
+        ])
+        .getMany();
+      return staff;
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while getting this staff')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while getting this staff',
+      );
     }
   }
 
   async findOne(id: number) {
     try {
-    return  await this.staffRepository.findOne({
-        where: { id }
+      return await this.staffRepository.findOne({
+        where: { id },
       });
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('Staff record was not found')
+      console.log(error);
+      throw new InternalServerErrorException('Staff record was not found');
     }
   }
 
   async update(id: number, updateStaffDto: UpdateStaffDto) {
     try {
-      await this.staffRepository.update(id, updateStaffDto)
-      return await this.findOne(id)
+      await this.staffRepository.update(id, updateStaffDto);
+      return await this.findOne(id);
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while updating this staff record')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while updating this staff record',
+      );
     }
   }
 
   async remove(id: number) {
     try {
-      await this.staffRepository.delete(id)
-      return { delete: true }
+      await this.staffRepository.delete(id);
+      return { delete: true };
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while deleting this staff record')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while deleting this staff record',
+      );
     }
   }
 }

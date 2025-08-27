@@ -9,6 +9,6 @@ import { Sponsorship } from 'src/sponsorship/entities/sponsorship.entity';
 @Module({
   controllers: [PartnersController],
   providers: [PartnersService],
-  imports: [TypeOrmModule.forFeature([Partner, Sponsorship]), CloudinaryModule]
+  imports: [TypeOrmModule.forFeature([Partner, Sponsorship]), CloudinaryModule],
 })
-export class PartnersModule { }
+export class PartnersModule {}

@@ -1,8 +1,17 @@
-import { IsString, IsNotEmpty, IsOptional, IsDate, IsNumber, Length, ValidateNested, IsEnum, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDate,
+  IsNumber,
+  Length,
+  ValidateNested,
+  IsEnum,
+  IsInt,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateGradeDto } from '../../grades/dto/create-grade.dto';
 import { ProgramType } from 'src/programs/entities/program.entity';
-
 
 export class CreateStudentDto {
   @IsString()
@@ -36,7 +45,7 @@ export class CreateStudentDto {
 
   @IsString()
   @IsNotEmpty()
-  @Length(1,20)
+  @Length(1, 20)
   country: string;
 
   @IsString()
@@ -144,13 +153,13 @@ export class CreateStudentDto {
 
   @IsEnum(ProgramType)
   @IsNotEmpty()
-  program: ProgramType
+  program: ProgramType;
 
   @IsInt()
   @IsNotEmpty()
-  year: number
+  year: number;
 
   @IsInt()
   @IsNotEmpty()
-  quarter: number
+  quarter: number;
 }

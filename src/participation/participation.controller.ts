@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { ParticipationService } from './participation.service';
 import { CreateParticipationDto } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
@@ -6,7 +15,7 @@ import { FilterDto } from './dto/filter.dto';
 
 @Controller('participation')
 export class ParticipationController {
-  constructor(private readonly participationService: ParticipationService) { }
+  constructor(private readonly participationService: ParticipationService) {}
 
   @Post()
   async create(@Body() createParticipationDto: CreateParticipationDto) {
@@ -20,7 +29,7 @@ export class ParticipationController {
 
   @Get('filter')
   async filter(@Query() filterDto: FilterDto) {
-    return this.participationService.findByOptions(filterDto)
+    return this.participationService.findByOptions(filterDto);
   }
 
   @Get(':id')
@@ -29,7 +38,10 @@ export class ParticipationController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateParticipationDto: UpdateParticipationDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateParticipationDto: UpdateParticipationDto,
+  ) {
     return await this.participationService.update(+id, updateParticipationDto);
   }
 

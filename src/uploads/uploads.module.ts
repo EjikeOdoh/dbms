@@ -7,6 +7,6 @@ import { ParticipationModule } from 'src/participation/participation.module';
 @Module({
   controllers: [UploadsController],
   providers: [UploadsService],
-  imports: [StudentsModule, ParticipationModule]
+  imports: [StudentsModule, ParticipationModule],
 })
 export class UploadsModule {}

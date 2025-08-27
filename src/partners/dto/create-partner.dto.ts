@@ -1,35 +1,41 @@
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator"
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreatePartnerDto {
-    @IsString()
-    @IsNotEmpty()
-    name: string
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-    @IsString()
-    @IsOptional()
-    desc?: string
+  @IsString()
+  @IsOptional()
+  desc?: string;
 
-    @IsString()
-    @IsOptional()
-    twitter?: string
+  @IsString()
+  @IsOptional()
+  twitter?: string;
 
-    @IsString()
-    @IsOptional()
-    linkedIn?: string
+  @IsString()
+  @IsOptional()
+  linkedIn?: string;
 
-    @IsNumber()
-    @IsOptional()
-    date?: number
+  @IsNumber()
+  @IsOptional()
+  date?: number;
 
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 
-    @IsString()
-    @IsOptional()
-    logoUrl?: string
+  @IsString()
+  @IsOptional()
+  logoUrl?: string;
 
-    @IsString()
-    @IsOptional()
-    logoPublicId?: string
+  @IsString()
+  @IsOptional()
+  logoPublicId?: string;
 }

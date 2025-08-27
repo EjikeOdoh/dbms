@@ -10,6 +10,9 @@ import { VolunteerParticipationModule } from 'src/volunteer-participation/volunt
 @Module({
   controllers: [VolunteersController],
   providers: [VolunteersService],
-  imports:[TypeOrmModule.forFeature([Volunteer, VolunteerParticipation, Program]), VolunteerParticipationModule]
+  imports: [
+    TypeOrmModule.forFeature([Volunteer, VolunteerParticipation, Program]),
+    VolunteerParticipationModule,
+  ],
 })
 export class VolunteersModule {}

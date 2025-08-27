@@ -9,7 +9,9 @@ import { Program } from 'src/programs/entities/program.entity';
 @Module({
   controllers: [VolunteerParticipationController],
   providers: [VolunteerParticipationService],
-  imports:[TypeOrmModule.forFeature([VolunteerParticipation, Volunteer, Program])],
-  exports:[VolunteerParticipationService]
+  imports: [
+    TypeOrmModule.forFeature([VolunteerParticipation, Volunteer, Program]),
+  ],
+  exports: [VolunteerParticipationService],
 })
 export class VolunteerParticipationModule {}

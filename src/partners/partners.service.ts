@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreatePartnerDto } from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,25 +15,28 @@ import { Sponsorship } from 'src/sponsorship/entities/sponsorship.entity';
 export class PartnersService {
   constructor(
     @InjectRepository(Partner) private partnerRepository: Repository<Partner>,
-    @InjectRepository(Sponsorship) private sponsorshipRepo: Repository<Sponsorship>,
-    private readonly cloudinaryService: CloudinaryService
-  ) { }
+    @InjectRepository(Sponsorship)
+    private sponsorshipRepo: Repository<Sponsorship>,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
   async create(createPartnerDto: CreatePartnerDto) {
-    const partner = this.partnerRepository.create(createPartnerDto)
+    const partner = this.partnerRepository.create(createPartnerDto);
     try {
-      return await this.partnerRepository.save(partner)
+      return await this.partnerRepository.save(partner);
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('This partner already exists.');
       }
-      throw new InternalServerErrorException('An unexpected error occurred while creating this program.');
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while creating this program.',
+      );
     }
   }
 
   async findAll() {
     return await this.partnerRepository.find({
-      select: ['id', 'name', 'logoUrl', 'isActive']
-    })
+      select: ['id', 'name', 'logoUrl', 'isActive'],
+    });
   }
 
   async findOne(id: number) {
@@ -41,24 +48,26 @@ export class PartnersService {
         'sponsorship.id AS id',
         'sponsorship.year AS year',
         'sponsorship.amount AS amount',
-        'program.program As program'
+        'program.program As program',
       ])
       .where('sponsorship.partnerId = :partnerId', { partnerId: id })
       .orderBy('sponsorship.year', 'DESC')
-      .getRawMany()
-    return { ...partner, sponsorships }
+      .getRawMany();
+    return { ...partner, sponsorships };
   }
 
   async update(id: number, updatePartnerDto: UpdatePartnerDto) {
     try {
-      const { logoPublicId } = await this.partnerRepository.findOne({ where: { id } })
-      await this.partnerRepository.update(id, updatePartnerDto)
-      await this.cloudinaryService.deleteImage(logoPublicId)
-
+      const { logoPublicId } = await this.partnerRepository.findOne({
+        where: { id },
+      });
+      await this.partnerRepository.update(id, updatePartnerDto);
+      await this.cloudinaryService.deleteImage(logoPublicId);
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while updating this partner record')
-
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while updating this partner record',
+      );
     }
   }
 
@@ -67,8 +76,10 @@ export class PartnersService {
       await this.partnerRepository.delete(id);
       return { deleted: true };
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while deleting this partner record')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while deleting this partner record',
+      );
     }
   }
 }

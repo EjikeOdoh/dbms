@@ -8,7 +8,7 @@ import { Student } from 'src/students/entities/student.entity';
 @Module({
   controllers: [GradesController],
   providers: [GradesService],
-  imports:[TypeOrmModule.forFeature([Grade, Student])],
-  exports:[GradesService]
+  imports: [TypeOrmModule.forFeature([Grade, Student])],
+  exports: [GradesService],
 })
 export class GradesModule {}

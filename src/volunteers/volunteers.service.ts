@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateVolunteerDto } from './dto/create-volunteer.dto';
 import { UpdateVolunteerDto } from './dto/update-volunteer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,50 +10,57 @@ import { VolunteerParticipationService } from 'src/volunteer-participation/volun
 @Injectable()
 export class VolunteersService {
   constructor(
-    @InjectRepository(Volunteer) private volunteerRepository: Repository<Volunteer>,
-    @InjectRepository(VolunteerParticipation) private vp: Repository<VolunteerParticipation>,
-    private participationService: VolunteerParticipationService
-  ) { }
+    @InjectRepository(Volunteer)
+    private volunteerRepository: Repository<Volunteer>,
+    @InjectRepository(VolunteerParticipation)
+    private vp: Repository<VolunteerParticipation>,
+    private participationService: VolunteerParticipationService,
+  ) {}
 
   async create(createVolunteerDto: CreateVolunteerDto) {
-    const { quarter, year, programId, ...rest } = createVolunteerDto
-    const volunteer = this.volunteerRepository.create(rest)
+    const { quarter, year, programId, ...rest } = createVolunteerDto;
+    const volunteer = this.volunteerRepository.create(rest);
 
     try {
-      const newVolunteer = await this.volunteerRepository.save(volunteer)
+      const newVolunteer = await this.volunteerRepository.save(volunteer);
       if (newVolunteer.type === 'PROGRAM') {
         await this.participationService.create({
           volunteerId: newVolunteer.id,
           programId,
           quarter,
-          year
-        })
+          year,
+        });
       }
 
-      return newVolunteer
-
+      return newVolunteer;
     } catch (err) {
       if (err.code === '23505') {
-        throw new Error("this person already exists")
+        throw new Error('this person already exists');
       }
-      console.log(err)
-      throw new InternalServerErrorException('An error occurred while creating this volunteer')
+      console.log(err);
+      throw new InternalServerErrorException(
+        'An error occurred while creating this volunteer',
+      );
     }
   }
 
   async findAll() {
     try {
       return await this.volunteerRepository.find({
-        select: ['id', 'firstName', 'lastName', 'type', 'active', 'location']
-      })
+        select: ['id', 'firstName', 'lastName', 'type', 'active', 'location'],
+      });
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while getting volunteers')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while getting volunteers',
+      );
     }
   }
 
   async findOne(id: number) {
-    const volunteer = await this.volunteerRepository.findOneOrFail({ where: { id } })
+    const volunteer = await this.volunteerRepository.findOneOrFail({
+      where: { id },
+    });
 
     const participations = await this.vp
       .createQueryBuilder('volunteer-participation')
@@ -63,20 +70,19 @@ export class VolunteersService {
         'volunteer-participation.year AS year',
         'volunteer-participation.quarter AS quarter',
         'program.program AS program',
-
       ])
-      .where('volunteer-participation.volunteerId = :volunteerId', { volunteerId: id })
+      .where('volunteer-participation.volunteerId = :volunteerId', {
+        volunteerId: id,
+      })
       .orderBy('volunteer-participation.year', 'DESC')
-      .getRawMany()
+      .getRawMany();
 
-    return { ...volunteer, 
-      participations 
-    }
+    return { ...volunteer, participations };
   }
 
   async update(id: number, updateVolunteerDto: UpdateVolunteerDto) {
     try {
-      await this.volunteerRepository.update(id, updateVolunteerDto)
+      await this.volunteerRepository.update(id, updateVolunteerDto);
       return this.volunteerRepository.findOne({ where: { id } });
     } catch (error) {
       console.log(error);
@@ -86,14 +92,15 @@ export class VolunteersService {
     }
   }
 
-
   async remove(id: number) {
     try {
-      await this.volunteerRepository.delete(id)
-      return { delete: true }
+      await this.volunteerRepository.delete(id);
+      return { delete: true };
     } catch (error) {
-      console.log(error)
-      throw new InternalServerErrorException('An error occurred while deleting this volunteer record')
+      console.log(error);
+      throw new InternalServerErrorException(
+        'An error occurred while deleting this volunteer record',
+      );
     }
   }
 }
