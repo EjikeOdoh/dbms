@@ -21,7 +21,7 @@ export class TargetService {
       return await this.targetRepository.save(target);
     } catch (error) {
       if (error.code === '23505') {
-        throw new ConflictException('This program already exist.');
+        throw new ConflictException('This target already exists.');
       }
       console.log(error);
       throw new InternalServerErrorException(

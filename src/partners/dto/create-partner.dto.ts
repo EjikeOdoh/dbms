@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { GetPartnerSponsorshipsDto } from 'src/sponsorship/dto/create-sponsorship.dto';
 
 export class CreatePartnerDto {
   @ApiProperty({ example: 'F5' })
@@ -57,6 +58,9 @@ export class PartnerDto extends OmitType(CreatePartnerDto, ['logoPublicId', 'log
 export class CreatePartnerResponseDto extends CreatePartnerDto {
   @ApiProperty({example:  1})
   id: number
+
+  @ApiProperty({type: [GetPartnerSponsorshipsDto]})
+  sponsorships: GetPartnerSponsorshipsDto[]
 }
 
 export class GetAllPartnersResponseDto extends PickType(CreatePartnerResponseDto, ['id','name','logoUrl','isActive']) {}

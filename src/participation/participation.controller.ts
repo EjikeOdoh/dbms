@@ -12,10 +12,11 @@ import { ParticipationService } from './participation.service';
 import { CreatePartcicipationResponseDto, CreateParticipationDto } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
 import { FilterDto } from './dto/filter.dto';
-import { ApiBody, ApiConflictResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { DeleteResponseDto, StatsResponseDto } from 'src/common.dto';
 import { FilterStudentsResponseDto } from 'src/students/dto/create-student.dto';
 
+@ApiBearerAuth('JWT-auth')
 @Controller('participation')
 export class ParticipationController {
   constructor(private readonly participationService: ParticipationService) { }

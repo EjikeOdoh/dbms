@@ -16,9 +16,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { ApiBody, ApiConflictResponse, ApiConsumes, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiConsumes, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
 
+@ApiBearerAuth('JWT-auth')
 @Controller('partners')
 export class PartnersController {
   constructor(

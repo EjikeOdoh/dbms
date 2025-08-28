@@ -60,12 +60,7 @@ export class VolunteerParticipationService {
 
   // Fix this later
   async findOne(id: number) {
-    return await this.vp
-      .createQueryBuilder('volunteer_participation')
-      .leftJoin('volunteer_participation', 'volunteer')
-      .where(`volunteer.id=${id}`)
-      .orderBy('volunteer_participation.year', 'DESC')
-      .getMany();
+    return await this.vp.findOneOrFail({where:{id}})
   }
 
   async update(

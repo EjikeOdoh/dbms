@@ -11,3 +11,9 @@ export class CreateProgramDto {
   @IsNotEmpty()
   program: ProgramType;
 }
+
+export class CreateProgramResponseDto extends CreateProgramDto {
+  @ApiProperty({example: 1})
+  id: number
+}
+

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,14 +9,16 @@ import { Repository } from 'typeorm';
 export class StaffService {
   constructor(
     @InjectRepository(Staff) private staffRepository: Repository<Staff>,
-  ) {}
+  ) { }
 
   async create(createStaffDto: CreateStaffDto) {
     const newStaff = this.staffRepository.create(createStaffDto);
     try {
       return await this.staffRepository.save(newStaff);
     } catch (error) {
-      console.log(error);
+      if (error.code === '23505') {
+        throw new ConflictException('This staff already exists.');
+      }
       throw new InternalServerErrorException(
         'An error occurred while creating this staff',
       );
@@ -40,7 +42,7 @@ export class StaffService {
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
-        'An error occurred while getting this staff',
+        'An error occurred while fetching all staff',
       );
     }
   }

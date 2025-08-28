@@ -12,3 +12,8 @@ export class CreateTargetDto {
   @IsNotEmpty()
   year: number;
 }
+
+export class CreateTargetResponseDto extends CreateTargetDto {
+  @ApiProperty({ example: 1 })
+  id: number
+}

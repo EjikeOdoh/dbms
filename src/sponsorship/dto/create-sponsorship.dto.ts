@@ -1,6 +1,5 @@
-import { ApiProperty, ApiPropertyOptional, ApiResponse, PickType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, ApiResponse, OmitType, PickType } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
-import { Program } from 'src/enums/program.enum';
 import { ProgramType } from 'src/programs/entities/program.entity';
 
 export enum Currency {
@@ -50,16 +49,6 @@ export class CreateSponsorshipResponseDto extends CreateSponsorshipDto {
 }
 
 
-// {
-//   "id": 1,
-//   "amount": 100000,
-//   "currency": null,
-//   "year": 2025,
-//   "donation": null,
-//   "partner": "GSR",
-//   "program": "ALL"
-// },
-
 export class GetAllSponsorshipDto extends PickType(CreateSponsorshipResponseDto, ['id', 'amount', 'currency', 'year']) {
   @ApiProperty({ example: "10 Dell Inspiron 4560 laptops" })
   donation: string
@@ -70,3 +59,5 @@ export class GetAllSponsorshipDto extends PickType(CreateSponsorshipResponseDto,
   @ApiProperty({ example: ProgramType.ASCG, enum: ProgramType })
   program: ProgramType
 }
+
+export class GetPartnerSponsorshipsDto extends OmitType(GetAllSponsorshipDto, ['partner']) { }

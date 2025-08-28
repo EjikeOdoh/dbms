@@ -10,9 +10,10 @@ import {
 import { SponsorshipService } from './sponsorship.service';
 import { CreateSponsorshipDto, CreateSponsorshipResponseDto, GetAllSponsorshipDto } from './dto/create-sponsorship.dto';
 import { UpdateSponsorshipDto } from './dto/update-sponsorship.dto';
-import { ApiBody, ApiConflictResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
 
+@ApiBearerAuth('JWT-auth')
 @Controller('sponsorship')
 export class SponsorshipController {
   constructor(private readonly sponsorshipService: SponsorshipService) { }

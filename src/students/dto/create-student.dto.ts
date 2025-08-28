@@ -10,7 +10,7 @@ import {
   IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CreateGradeDto, GradeDto } from '../../grades/dto/create-grade.dto';
+import { CreateGradeDto, GetStudentGradesResponseDto, GradeDto } from '../../grades/dto/create-grade.dto';
 import { ProgramType } from 'src/programs/entities/program.entity';
 import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 
@@ -53,7 +53,6 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: '2010-10-10',
-    required: true
   })
   @IsDate()
   @IsNotEmpty()
@@ -292,15 +291,90 @@ export class CreateStudentDto {
 
 
 export class FilterStudentsResponseDto extends PickType(CreateStudentDto, ['firstName', 'lastName', 'dob', 'country']) {
-  @ApiProperty({example: 1})
+  @ApiProperty({ example: 1 })
   participationId: number
 
-  @ApiProperty({example: 1})
+  @ApiProperty({ example: 1 })
   studentId: number
 
-  @ApiProperty({example: 2025})
+  @ApiProperty({ example: 2025 })
   year: number
 
-  @ApiProperty({example: ProgramType.ASCG, enum:ProgramType})
+  @ApiProperty({ example: ProgramType.ASCG, enum: ProgramType })
   program: ProgramType
+}
+
+export class CreateStudentResponseDto extends OmitType(CreateStudentDto, ['grades', 'program', 'quarter', 'year']) {
+  @ApiProperty()
+  id: number
+
+  @ApiProperty({ example: 2023 })
+  yearJoined: number
+}
+
+export class UpdateStudentApiDto extends OmitType(CreateStudentResponseDto,['id']) {}
+
+export class PaginationMetaDto {
+  @ApiProperty()
+  total: number;
+
+  @ApiProperty()
+  page: number;
+
+  @ApiProperty()
+  limit: number;
+
+  @ApiProperty()
+  totalPages: number;
+
+  @ApiProperty({ nullable: true })
+  nextPage: number | null;
+
+  @ApiProperty()
+  hasNextPage: boolean;
+
+  @ApiProperty()
+  hasPreviousPage: boolean;
+}
+
+export class GetStudentsResponseDto extends PickType(CreateStudentResponseDto, ['id', 'firstName', 'lastName', 'dob', 'school', 'country', 'yearJoined']) {
+}
+
+export class GetAllStudentsResponseDto {
+  @ApiProperty({ type: () => [GetStudentsResponseDto] })
+  data: GetStudentsResponseDto[];
+
+  @ApiProperty({ type: () => PaginationMetaDto })
+  meta: PaginationMetaDto;
+}
+
+export class GetSearchResponseDto {
+  @ApiProperty({ type: () => [GetStudentsResponseDto] })
+  students: GetStudentsResponseDto[];
+
+  @ApiProperty()
+  count: number
+}
+
+export class ParticipationResponseDto {
+  @ApiProperty({ example: 402 })
+  participation_id: number;
+
+  @ApiProperty({ example: 2025 })
+  participation_year: number;
+
+  @ApiProperty({ example: 2 })
+  participation_quarter: number;
+
+  @ApiProperty({ example: ProgramType.ASCG, enum: ProgramType })
+  program_program: ProgramType;
+}
+
+export class StudentResponseDto extends CreateStudentResponseDto {
+  @ApiProperty({ type: () => [GetStudentGradesResponseDto] })
+  grades: GetStudentGradesResponseDto[]
+
+  @ApiProperty({ type: () => [ParticipationResponseDto] })
+  participations: ParticipationResponseDto[]
+
 }
