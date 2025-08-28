@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType, PickType } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsNotEmpty,
@@ -48,3 +48,15 @@ export class CreatePartnerDto {
   @IsOptional()
   logoPublicId?: string;
 }
+
+export class PartnerDto extends OmitType(CreatePartnerDto, ['logoPublicId', 'logoUrl']) {
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
+  logo: any;
+}
+
+export class CreatePartnerResponseDto extends CreatePartnerDto {
+  @ApiProperty({example:  1})
+  id: number
+}
+
+export class GetAllPartnersResponseDto extends PickType(CreatePartnerResponseDto, ['id','name','logoUrl','isActive']) {}

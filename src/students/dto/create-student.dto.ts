@@ -12,7 +12,7 @@ import {
 import { Type } from 'class-transformer';
 import { CreateGradeDto, GradeDto } from '../../grades/dto/create-grade.dto';
 import { ProgramType } from 'src/programs/entities/program.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 
 export class CreateStudentDto {
   @ApiProperty({
@@ -256,7 +256,7 @@ export class CreateStudentDto {
   careerChoice2?: string;
 
   @ApiProperty({
-    type: () => GradeDto, 
+    type: () => GradeDto,
     required: false,
   })
   @ValidateNested({ each: true })
@@ -288,4 +288,19 @@ export class CreateStudentDto {
   @IsInt()
   @IsNotEmpty()
   quarter: number;
+}
+
+
+export class FilterStudentsResponseDto extends PickType(CreateStudentDto, ['firstName', 'lastName', 'dob', 'country']) {
+  @ApiProperty({example: 1})
+  participationId: number
+
+  @ApiProperty({example: 1})
+  studentId: number
+
+  @ApiProperty({example: 2025})
+  year: number
+
+  @ApiProperty({example: ProgramType.ASCG, enum:ProgramType})
+  program: ProgramType
 }

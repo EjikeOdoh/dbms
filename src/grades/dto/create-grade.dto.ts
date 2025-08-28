@@ -103,7 +103,7 @@ export class CreateGradesResponseDto extends CreateGradeDto {
   id: number
 }
 
-export class GetStudentGradesResponseDto extends OmitType(CreateGradeDto, ['studentId']) {}
+export class GetStudentGradesResponseDto extends OmitType(CreateGradesResponseDto, ['studentId']) {}
 
  export class GetAllGradesResponseDto {
   @ApiProperty()

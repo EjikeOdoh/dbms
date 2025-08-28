@@ -54,12 +54,42 @@ export class SponsorshipService {
   }
 
   async findAll() {
-    return await this.sponsorshipRepository.find();
+    return await this.sponsorshipRepository
+      .createQueryBuilder('sponsorship')
+      .leftJoin('sponsorship.partner', 'partner')
+      .leftJoin('sponsorship.program', 'program')
+      .select([
+        'sponsorship.id AS id',
+        'sponsorship.amount AS amount',
+        'sponsorship.currency AS currency',
+        'sponsorship.year AS year',
+        'sponsorship.inKindDonation AS donation',
+        'partner.name AS partner',
+        'program.program AS program',
+      ])
+      .getRawMany();
   }
+  
+  
 
   async findOne(id: number) {
-    return await this.sponsorshipRepository.findOne({ where: { id } });
+    return await this.sponsorshipRepository
+      .createQueryBuilder('sponsorship')
+      .leftJoin('sponsorship.partner', 'partner')
+      .leftJoin('sponsorship.program', 'program')
+      .select([
+        'sponsorship.id AS id',
+        'sponsorship.amount AS amount',
+        'sponsorship.currency AS currency',
+        'sponsorship.year AS year',
+        'sponsorship.inKindDonation AS donation',
+        'partner.name AS "partner"',
+        'program.program AS "program"',
+      ])
+      .where('sponsorship.id = :sponsorshipId', { sponsorshipId: id })
+      .getRawOne();
   }
+  
 
   async update(id: number, updateSponsorshipDto: UpdateSponsorshipDto) {
     await this.sponsorshipRepository.update(id, updateSponsorshipDto);

@@ -10,7 +10,7 @@ import {
 import { GradesService } from './grades.service';
 import { CreateGradeDto, CreateGradesResponseDto, GetAllGradesResponseDto, GetStudentGradesResponseDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
-import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
 
 @ApiBearerAuth('JWT-auth')
@@ -40,7 +40,7 @@ export class GradesController {
   @Get()
   @ApiOperation({ summary: `Get all students' grades` })
   @ApiOkResponse({
-    type: GetAllGradesResponseDto
+    type: [GetAllGradesResponseDto]
   })
   @ApiInternalServerErrorResponse({
     example: `An unexpected error occurred while fetching all students' grades.`
@@ -50,11 +50,10 @@ export class GradesController {
   }
 
 
-
   @Get(':id')
   @ApiOperation({ summary: `Get a student's grades` })
   @ApiOkResponse({
-    type: GetStudentGradesResponseDto
+    type: [GetStudentGradesResponseDto]
   })
   @ApiInternalServerErrorResponse({
     example: `An unexpected error occurred while fetching this student's grades.`
@@ -66,6 +65,11 @@ export class GradesController {
 
   @Patch(':id')
   @ApiOperation({ summary: `Update a student's grades` })
+  @ApiBody({ type: CreateGradeDto })
+  @ApiParam({
+    name:"id",
+    type: Number
+  })
   @ApiOkResponse({
     type: CreateGradesResponseDto
   })

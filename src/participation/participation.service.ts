@@ -169,7 +169,7 @@ export class ParticipationService {
       dob: result.dob,
       country: result.country,
       program: result.program,
-      count: result.count,
+      // count: result.count,
     }));
   }
 

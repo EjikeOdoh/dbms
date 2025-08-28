@@ -48,6 +48,8 @@ export class PartnersService {
         'sponsorship.id AS id',
         'sponsorship.year AS year',
         'sponsorship.amount AS amount',
+        'sponsorship.currency AS currency',
+        'sponsorship.inKindDonation AS donation',
         'program.program As program',
       ])
       .where('sponsorship.partnerId = :partnerId', { partnerId: id })
@@ -63,6 +65,7 @@ export class PartnersService {
       });
       await this.partnerRepository.update(id, updatePartnerDto);
       await this.cloudinaryService.deleteImage(logoPublicId);
+      return await this.findOne(id)
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
