@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { IsString, IsOptional, IsInt, Length, IsNotEmpty } from 'class-validator';
 
 export class GradeDto {
@@ -98,3 +98,26 @@ export class CreateGradeDto extends GradeDto {
   year?: number;
 }
 
+export class CreateGradesResponseDto extends CreateGradeDto {
+  @ApiProperty({example:1})
+  id: number
+}
+
+export class GetStudentGradesResponseDto extends OmitType(CreateGradeDto, ['studentId']) {}
+
+ export class GetAllGradesResponseDto {
+  @ApiProperty()
+  studentId: number;
+
+  @ApiProperty()
+  school: string;
+
+  @ApiProperty()
+  firstName: string;
+
+  @ApiProperty()
+  lastName: string;
+
+  @ApiProperty({ type: [GetStudentGradesResponseDto] })
+  grades: GetStudentGradesResponseDto[];
+}
