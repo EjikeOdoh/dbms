@@ -63,7 +63,7 @@ export class SponsorshipService {
         'sponsorship.amount AS amount',
         'sponsorship.currency AS currency',
         'sponsorship.year AS year',
-        'sponsorship.inKindDonation AS donation',
+        'sponsorship.inkinddonation AS inkinddonation',
         'partner.name AS partner',
         'program.program AS program',
       ])

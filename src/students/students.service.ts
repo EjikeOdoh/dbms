@@ -229,6 +229,7 @@ export class StudentsService {
         'student.firstName',
         'student.lastName',
         'student.dob',
+        'student.school',
         'student.country',
         'student.yearJoined',
       ])

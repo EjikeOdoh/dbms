@@ -37,5 +37,5 @@ export class Sponsorship {
   currency: Currency;
 
   @Column({ nullable: true })
-  inKindDonation: string;
+  inkinddonation: string;
 }

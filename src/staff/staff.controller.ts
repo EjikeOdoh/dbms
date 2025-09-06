@@ -53,6 +53,7 @@ export class StaffController {
     @Param('id') id: string,
     @Body() updateStaffDto: UpdateStaffDto,
   ) {
+    console.log(typeof updateStaffDto.active)
     return await this.staffService.update(+id, updateStaffDto);
   }
 

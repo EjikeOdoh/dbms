@@ -8,6 +8,8 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import { CreatePartnerDto, CreatePartnerResponseDto, GetAllPartnersResponseDto, PartnerDto } from './dto/create-partner.dto';
@@ -71,6 +73,7 @@ export class PartnersController {
       logoPublicId = uploadRes.public_id;
     }
 
+
     return await this.partnersService.create({
       ...createPartnerDto,
       logoUrl,
@@ -91,7 +94,6 @@ export class PartnersController {
     return await this.partnersService.findAll();
   }
 
-
   @Get(':id')
   @ApiOperation({ summary: `Get partner` })
   @ApiOkResponse({
@@ -103,6 +105,16 @@ export class PartnersController {
   async findOne(@Param('id') id: string) {
     return await this.partnersService.findOne(+id);
   }
+
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() updatePartnerDto: UpdatePartnerDto,
+  ) {
+    return this.partnersService.update(+id, updatePartnerDto);
+  }
+
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update partner' })
@@ -131,6 +143,7 @@ export class PartnersController {
       }),
     }),
   )
+
   async update(
     @UploadedFile() logo: Express.Multer.File,
     @Param('id') id: string,
@@ -154,13 +167,13 @@ export class PartnersController {
 
 
   @Delete(':id')
-    @ApiOperation({ summary: `Delete a partner` })
-    @ApiOkResponse({
-      type: DeleteResponseDto
-    })
-    @ApiInternalServerErrorResponse({
-      example: `An error occurred while deleting this partner record`
-    })
+  @ApiOperation({ summary: `Delete a partner` })
+  @ApiOkResponse({
+    type: DeleteResponseDto
+  })
+  @ApiInternalServerErrorResponse({
+    example: `An error occurred while deleting this partner record`
+  })
   remove(@Param('id') id: string) {
     return this.partnersService.remove(+id);
   }

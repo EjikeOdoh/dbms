@@ -6,6 +6,7 @@ export enum Currency {
   NGN = 'NGN',
   USD = 'USD',
   EUR = 'EUR',
+  NULL = ""
 }
 
 export class CreateSponsorshipDto {
@@ -40,7 +41,7 @@ export class CreateSponsorshipDto {
   @ApiPropertyOptional({
     example: "10 Dell Inspiron 4560 laptops"
   })
-  inKindDonation: string
+  inkinddonation: string
 }
 
 export class CreateSponsorshipResponseDto extends CreateSponsorshipDto {

@@ -1,13 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-
+  
   const config = new DocumentBuilder()
-    .setTitle('VF MIS')
+    .setTitle('VF MIS API DOCS')
     .setDescription('The VF MIS API description')
     .setVersion('1.0')
     .addBearerAuth(

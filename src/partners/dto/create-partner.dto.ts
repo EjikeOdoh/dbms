@@ -6,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { GetPartnerSponsorshipsDto } from 'src/sponsorship/dto/create-sponsorship.dto';
 
 export class CreatePartnerDto {
@@ -14,7 +15,9 @@ export class CreatePartnerDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ example: "F5 is a multi-cloud application security and delivery company that helps organizations create, secure, and operate applications by providing solutions for web application and API protection, multicloud networking, and zero trust security. Their technologies are used by large enterprises, financial institutions, and governments to protect against cyber threats and deliver reliable digital experiences across data centers and cloud environments" })
+  @ApiPropertyOptional({
+    example: "F5 is a multi-cloud application security and delivery company..."
+  })
   @IsString()
   @IsOptional()
   desc?: string;
@@ -32,19 +35,25 @@ export class CreatePartnerDto {
   @ApiPropertyOptional({ example: 2020 })
   @IsNumber()
   @IsOptional()
-  date?: number;
+  @Type(() => Number)  
+  year?: number;
 
   @ApiPropertyOptional({ example: true })
   @IsBoolean()
   @IsOptional()
+  @Type(() => Boolean) 
   isActive?: boolean;
 
-  @ApiPropertyOptional({ example: "http://res.cloudinary.com/deyp75nnw/image/upload/v1756142100/partners/eun6n1lq0yfcc24hvp4o.png" })
+  @ApiPropertyOptional({
+    example: "http://res.cloudinary.com/deyp75nnw/image/upload/v1756142100/partners/eun6n1lq0yfcc24hvp4o.png"
+  })
   @IsString()
   @IsOptional()
   logoUrl?: string;
 
-  @ApiPropertyOptional({ example: "partners/eun6n1lq0yfcc24hvp4o", })
+  @ApiPropertyOptional({
+    example: "partners/eun6n1lq0yfcc24hvp4o",
+  })
   @IsString()
   @IsOptional()
   logoPublicId?: string;
@@ -56,11 +65,11 @@ export class PartnerDto extends OmitType(CreatePartnerDto, ['logoPublicId', 'log
 }
 
 export class CreatePartnerResponseDto extends CreatePartnerDto {
-  @ApiProperty({example:  1})
+  @ApiProperty({ example: 1 })
   id: number
 
-  @ApiProperty({type: [GetPartnerSponsorshipsDto]})
+  @ApiProperty({ type: [GetPartnerSponsorshipsDto] })
   sponsorships: GetPartnerSponsorshipsDto[]
 }
 
-export class GetAllPartnersResponseDto extends PickType(CreatePartnerResponseDto, ['id','name','logoUrl','isActive']) {}
+export class GetAllPartnersResponseDto extends PickType(CreatePartnerResponseDto, ['id', 'name', 'logoUrl', 'isActive']) { }

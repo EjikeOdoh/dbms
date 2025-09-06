@@ -49,7 +49,7 @@ export class PartnersService {
         'sponsorship.year AS year',
         'sponsorship.amount AS amount',
         'sponsorship.currency AS currency',
-        'sponsorship.inKindDonation AS donation',
+        'sponsorship.inKindDonation AS inKindDonation',
         'program.program As program',
       ])
       .where('sponsorship.partnerId = :partnerId', { partnerId: id })

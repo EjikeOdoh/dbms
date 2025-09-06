@@ -32,7 +32,9 @@ export class TargetService {
 
   async findAll() {
     try {
-      return await this.targetRepository.find();
+      return await this.targetRepository.find({
+        order: { year: 'DESC' },
+      });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(
