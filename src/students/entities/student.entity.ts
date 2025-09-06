@@ -8,7 +8,7 @@ export class Student {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({description: 'Students school'})
+  @ApiProperty({ description: 'Students school' })
   @Column({ length: 50, nullable: false })
   school: string;
 

@@ -30,7 +30,7 @@ export class Partner {
   linkedIn: string;
 
   @Column({ nullable: true })
-  year: number | null
+  year: number | null;
 
   @Column({ default: true })
   isActive: boolean;

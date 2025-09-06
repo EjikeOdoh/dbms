@@ -1,11 +1,11 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Role } from "src/enums/role.enum.";
+import { ApiProperty } from '@nestjs/swagger';
+import { Role } from 'src/enums/role.enum.';
 
 export class LoginDto {
   @ApiProperty({ example: 'admin' })
   name: string;
 
-  @ApiProperty({ example: "password" })
+  @ApiProperty({ example: 'password' })
   password: string;
 }
 
@@ -14,8 +14,9 @@ export class LoginResponseDto {
     example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0IiwibmFtZSI6Ikpv
 aG4gRG9lIiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTY5MzAw
 MDAwMCwiZXhwIjoxNjkzMDAzNjAwfQ.V3g6Jf3Z2N6w4p8pR0m0TjYz0FqRmP0E8sP3lRZc6Gc
-` })
-  token: string
+`,
+  })
+  token: string;
 }
 
 export class UnauthorizedErrorDto {
@@ -38,7 +39,7 @@ export class UnauthorizedErrorDto {
 export class ProfileResponseDto {
   @ApiProperty({
     example: Role.Admin,
-    enum: Role
+    enum: Role,
   })
   role: Role;
 

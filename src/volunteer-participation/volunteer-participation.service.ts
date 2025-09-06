@@ -60,7 +60,7 @@ export class VolunteerParticipationService {
 
   // Fix this later
   async findOne(id: number) {
-    return await this.vp.findOneOrFail({where:{id}})
+    return await this.vp.findOneOrFail({ where: { id } });
   }
 
   async update(

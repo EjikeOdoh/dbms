@@ -1,8 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class DeleteResponseDto {
-    @ApiProperty({example: true})
-    deleted: boolean
+  @ApiProperty({ example: true })
+  deleted: boolean;
 }
 
 export class CountByCountryDto {

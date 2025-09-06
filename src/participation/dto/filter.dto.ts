@@ -5,7 +5,7 @@ import { ProgramType } from 'src/programs/entities/program.entity';
 export class FilterDto {
   @ApiPropertyOptional({
     example: ProgramType.ASCG,
-    enum: ProgramType
+    enum: ProgramType,
   })
   @IsEnum(ProgramType)
   @IsOptional()

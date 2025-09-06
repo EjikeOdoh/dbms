@@ -1,4 +1,9 @@
-import { ApiProperty, ApiPropertyOptional, OmitType, PickType } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from '@nestjs/swagger';
 import {
   IsBoolean,
   IsNotEmpty,
@@ -16,18 +21,18 @@ export class CreatePartnerDto {
   name: string;
 
   @ApiPropertyOptional({
-    example: "F5 is a multi-cloud application security and delivery company..."
+    example: 'F5 is a multi-cloud application security and delivery company...',
   })
   @IsString()
   @IsOptional()
   desc?: string;
 
-  @ApiPropertyOptional({ example: "https://twitter.com/f5" })
+  @ApiPropertyOptional({ example: 'https://twitter.com/f5' })
   @IsString()
   @IsOptional()
   twitter?: string;
 
-  @ApiPropertyOptional({ example: "https://www.linkedin.com/company/f5/" })
+  @ApiPropertyOptional({ example: 'https://www.linkedin.com/company/f5/' })
   @IsString()
   @IsOptional()
   linkedIn?: string;
@@ -35,41 +40,52 @@ export class CreatePartnerDto {
   @ApiPropertyOptional({ example: 2020 })
   @IsNumber()
   @IsOptional()
-  @Type(() => Number)  
+  @Type(() => Number)
   year?: number;
 
   @ApiPropertyOptional({ example: true })
   @IsBoolean()
   @IsOptional()
-  @Type(() => Boolean) 
+  @Type(() => Boolean)
   isActive?: boolean;
 
   @ApiPropertyOptional({
-    example: "http://res.cloudinary.com/deyp75nnw/image/upload/v1756142100/partners/eun6n1lq0yfcc24hvp4o.png"
+    example:
+      'http://res.cloudinary.com/deyp75nnw/image/upload/v1756142100/partners/eun6n1lq0yfcc24hvp4o.png',
   })
   @IsString()
   @IsOptional()
   logoUrl?: string;
 
   @ApiPropertyOptional({
-    example: "partners/eun6n1lq0yfcc24hvp4o",
+    example: 'partners/eun6n1lq0yfcc24hvp4o',
   })
   @IsString()
   @IsOptional()
   logoPublicId?: string;
 }
 
-export class PartnerDto extends OmitType(CreatePartnerDto, ['logoPublicId', 'logoUrl']) {
+export class PartnerDto extends OmitType(CreatePartnerDto, [
+  'logoPublicId',
+  'logoUrl',
+]) {
   @ApiPropertyOptional({ type: 'string', format: 'binary' })
   logo: any;
 }
 
+export class UpdatePartnerStatus extends PickType(CreatePartnerDto, [
+  'isActive',
+]) {}
+
 export class CreatePartnerResponseDto extends CreatePartnerDto {
   @ApiProperty({ example: 1 })
-  id: number
+  id: number;
 
   @ApiProperty({ type: [GetPartnerSponsorshipsDto] })
-  sponsorships: GetPartnerSponsorshipsDto[]
+  sponsorships: GetPartnerSponsorshipsDto[];
 }
 
-export class GetAllPartnersResponseDto extends PickType(CreatePartnerResponseDto, ['id', 'name', 'logoUrl', 'isActive']) { }
+export class GetAllPartnersResponseDto extends PickType(
+  CreatePartnerResponseDto,
+  ['id', 'name', 'logoUrl', 'isActive'],
+) {}

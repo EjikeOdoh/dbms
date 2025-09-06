@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreateStaffDto } from './dto/create-staff.dto';
 import { UpdateStaffDto } from './dto/update-staff.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,7 +13,7 @@ import { Repository } from 'typeorm';
 export class StaffService {
   constructor(
     @InjectRepository(Staff) private staffRepository: Repository<Staff>,
-  ) { }
+  ) {}
 
   async create(createStaffDto: CreateStaffDto) {
     const newStaff = this.staffRepository.create(createStaffDto);

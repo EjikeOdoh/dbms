@@ -23,8 +23,7 @@ export class CreateParticipationDto {
   quarter: number;
 }
 
-
 export class CreatePartcicipationResponseDto extends CreateParticipationDto {
   @ApiProperty({ example: 3 })
-  id: number
+  id: number;
 }

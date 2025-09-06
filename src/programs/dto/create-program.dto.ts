@@ -4,8 +4,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProgramDto {
   @ApiProperty({
-    example:ProgramType.ASCG,
-    enum: ProgramType
+    example: ProgramType.ASCG,
+    enum: ProgramType,
   })
   @IsEnum(ProgramType)
   @IsNotEmpty()
@@ -13,7 +13,6 @@ export class CreateProgramDto {
 }
 
 export class CreateProgramResponseDto extends CreateProgramDto {
-  @ApiProperty({example: 1})
-  id: number
+  @ApiProperty({ example: 1 })
+  id: number;
 }
-

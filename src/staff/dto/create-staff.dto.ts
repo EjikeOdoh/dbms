@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 
 export class CreateStaffDto {
-  @ApiPropertyOptional({ example: "I4500" })
+  @ApiPropertyOptional({ example: 'I4500' })
   @IsString()
   @IsOptional()
   staffId?: string;
@@ -97,7 +97,14 @@ export class CreateStaffDto {
 
 export class CreateStaffResponseDto extends CreateStaffDto {
   @ApiProperty({ example: 1 })
-  id: number
+  id: number;
 }
 
-export class GetAllStaffResponseDto extends PickType(CreateStaffResponseDto, ['id','staffId','firstName','lastName','role','active']) { }
+export class GetAllStaffResponseDto extends PickType(CreateStaffResponseDto, [
+  'id',
+  'staffId',
+  'firstName',
+  'lastName',
+  'role',
+  'active',
+]) {}

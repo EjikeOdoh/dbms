@@ -8,17 +8,30 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
-import { CreatePartnerDto, CreatePartnerResponseDto, GetAllPartnersResponseDto, PartnerDto } from './dto/create-partner.dto';
+import {
+  CreatePartnerDto,
+  CreatePartnerResponseDto,
+  GetAllPartnersResponseDto,
+  PartnerDto,
+  UpdatePartnerStatus,
+} from './dto/create-partner.dto';
 import { UpdatePartnerDto } from './dto/update-partner.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { ApiBearerAuth, ApiBody, ApiConflictResponse, ApiConsumes, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConflictResponse,
+  ApiConsumes,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
 
 @ApiBearerAuth('JWT-auth')
@@ -27,7 +40,7 @@ export class PartnersController {
   constructor(
     private readonly partnersService: PartnersService,
     private readonly cloudinaryService: CloudinaryService,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new partner with logo upload' })
@@ -42,10 +55,10 @@ export class PartnersController {
     type: CreatePartnerResponseDto,
   })
   @ApiConflictResponse({
-    example: `This partner already exists!`
+    example: `This partner already exists!`,
   })
   @ApiInternalServerErrorResponse({
-    example: `An unexpected error occurred while creating this partner.`
+    example: `An unexpected error occurred while creating this partner.`,
   })
   @UseInterceptors(
     FileInterceptor('logo', {
@@ -73,7 +86,6 @@ export class PartnersController {
       logoPublicId = uploadRes.public_id;
     }
 
-
     return await this.partnersService.create({
       ...createPartnerDto,
       logoUrl,
@@ -81,14 +93,13 @@ export class PartnersController {
     });
   }
 
-
   @Get()
   @ApiOperation({ summary: `Get all partners` })
   @ApiOkResponse({
-    type: [GetAllPartnersResponseDto]
+    type: [GetAllPartnersResponseDto],
   })
   @ApiInternalServerErrorResponse({
-    example: `An unexpected error occurred while fetching all partners.`
+    example: `An unexpected error occurred while fetching all partners.`,
   })
   async findAll() {
     return await this.partnersService.findAll();
@@ -97,24 +108,32 @@ export class PartnersController {
   @Get(':id')
   @ApiOperation({ summary: `Get partner` })
   @ApiOkResponse({
-    type: CreatePartnerResponseDto
+    type: CreatePartnerResponseDto,
   })
   @ApiInternalServerErrorResponse({
-    example: `An unexpected error occurred while fetching this partner.`
+    example: `An unexpected error occurred while fetching this partner.`,
   })
   async findOne(@Param('id') id: string) {
     return await this.partnersService.findOne(+id);
   }
 
-
   @Patch(':id/status')
+  @ApiOperation({ summary: `Update Partner status` })
+  @ApiBody({ type: UpdatePartnerStatus })
+  @ApiResponse({
+    status: 200,
+    description: 'Partner status updated successfully',
+    type: CreatePartnerResponseDto,
+  })
+  @ApiInternalServerErrorResponse({
+    example: `An error occurred while updating this partner status`,
+  })
   async updateStatus(
     @Param('id') id: string,
     @Body() updatePartnerDto: UpdatePartnerDto,
   ) {
     return this.partnersService.update(+id, updatePartnerDto);
   }
-
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update partner' })
@@ -128,7 +147,7 @@ export class PartnersController {
     type: CreatePartnerResponseDto,
   })
   @ApiInternalServerErrorResponse({
-    example: `An error occurred while updating this partner record`
+    example: `An error occurred while updating this partner record`,
   })
   @UseInterceptors(
     FileInterceptor('logo', {
@@ -143,7 +162,6 @@ export class PartnersController {
       }),
     }),
   )
-
   async update(
     @UploadedFile() logo: Express.Multer.File,
     @Param('id') id: string,
@@ -165,14 +183,13 @@ export class PartnersController {
     });
   }
 
-
   @Delete(':id')
   @ApiOperation({ summary: `Delete a partner` })
   @ApiOkResponse({
-    type: DeleteResponseDto
+    type: DeleteResponseDto,
   })
   @ApiInternalServerErrorResponse({
-    example: `An error occurred while deleting this partner record`
+    example: `An error occurred while deleting this partner record`,
   })
   remove(@Param('id') id: string) {
     return this.partnersService.remove(+id);

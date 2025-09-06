@@ -15,5 +15,5 @@ export class CreateTargetDto {
 
 export class CreateTargetResponseDto extends CreateTargetDto {
   @ApiProperty({ example: 1 })
-  id: number
+  id: number;
 }

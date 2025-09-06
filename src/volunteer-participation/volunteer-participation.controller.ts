@@ -8,9 +8,21 @@ import {
   Delete,
 } from '@nestjs/common';
 import { VolunteerParticipationService } from './volunteer-participation.service';
-import { CreateVolunteerParticipationDto, CreateVolunteerParticipationResponseDto, GetVolunteerParticipationResponseDto, UpdateVolunteerParticipationApiDto } from './dto/create-volunteer-participation.dto';
+import {
+  CreateVolunteerParticipationDto,
+  CreateVolunteerParticipationResponseDto,
+  GetVolunteerParticipationResponseDto,
+  UpdateVolunteerParticipationApiDto,
+} from './dto/create-volunteer-participation.dto';
 import { UpdateVolunteerParticipationDto } from './dto/update-volunteer-participation.dto';
-import { ApiBearerAuth, ApiBody, ApiInternalServerErrorResponse, ApiOkResponse, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
 
 @ApiBearerAuth('JWT-auth')
@@ -18,16 +30,18 @@ import { DeleteResponseDto } from 'src/common.dto';
 export class VolunteerParticipationController {
   constructor(
     private readonly volunteerParticipationService: VolunteerParticipationService,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: `Add Volunteer participation` })
   @ApiBody({ type: CreateVolunteerParticipationDto })
   @ApiResponse({
     status: 201,
-    type: CreateVolunteerParticipationResponseDto
+    type: CreateVolunteerParticipationResponseDto,
   })
-  @ApiInternalServerErrorResponse({ example: `An unexpected error occurred while creating this record.` })
+  @ApiInternalServerErrorResponse({
+    example: `An unexpected error occurred while creating this record.`,
+  })
   async create(
     @Body() createVolunteerParticipationDto: CreateVolunteerParticipationDto,
   ) {
@@ -39,7 +53,9 @@ export class VolunteerParticipationController {
   @Get()
   @ApiOperation({ summary: `Get all volunteers' participations` })
   @ApiOkResponse({ type: [GetVolunteerParticipationResponseDto] })
-  @ApiInternalServerErrorResponse({ example: `An unexpected error occurred while fetching all records.` })
+  @ApiInternalServerErrorResponse({
+    example: `An unexpected error occurred while fetching all records.`,
+  })
   async findAll() {
     return await this.volunteerParticipationService.findAll();
   }
@@ -47,7 +63,9 @@ export class VolunteerParticipationController {
   @Get(':id')
   @ApiOperation({ summary: `Get volunteer participation` })
   @ApiOkResponse({ type: GetVolunteerParticipationResponseDto })
-  @ApiInternalServerErrorResponse({ example: `An unexpected error occurred while fetching this record.` })
+  @ApiInternalServerErrorResponse({
+    example: `An unexpected error occurred while fetching this record.`,
+  })
   async findOne(@Param('id') id: string) {
     return await this.volunteerParticipationService.findOne(+id);
   }
@@ -56,7 +74,9 @@ export class VolunteerParticipationController {
   @ApiOperation({ summary: `Update a record` })
   @ApiBody({ type: UpdateVolunteerParticipationApiDto })
   @ApiOkResponse({ type: GetVolunteerParticipationResponseDto })
-  @ApiInternalServerErrorResponse({ example: `There was an error updating this record` })
+  @ApiInternalServerErrorResponse({
+    example: `There was an error updating this record`,
+  })
   async update(
     @Param('id') id: string,
     @Body() updateVolunteerParticipationDto: UpdateVolunteerParticipationDto,
@@ -66,7 +86,6 @@ export class VolunteerParticipationController {
       updateVolunteerParticipationDto,
     );
   }
-
 
   @Delete(':id')
   @ApiOperation({ summary: `Delete record` })

@@ -1,4 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { Program } from 'src/programs/entities/program.entity';
 import { Volunteer } from 'src/volunteers/entities/volunteer.entity';
 import {
@@ -32,5 +31,3 @@ export class VolunteerParticipation {
   @Column({ type: 'int', nullable: false })
   quarter: number;
 }
-
-

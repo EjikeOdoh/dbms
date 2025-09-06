@@ -65,7 +65,7 @@ export class PartnersService {
       });
       await this.partnerRepository.update(id, updatePartnerDto);
       await this.cloudinaryService.deleteImage(logoPublicId);
-      return await this.findOne(id)
+      return await this.findOne(id);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(

@@ -69,8 +69,6 @@ export class SponsorshipService {
       ])
       .getRawMany();
   }
-  
-  
 
   async findOne(id: number) {
     return await this.sponsorshipRepository
@@ -89,7 +87,6 @@ export class SponsorshipService {
       .where('sponsorship.id = :sponsorshipId', { sponsorshipId: id })
       .getRawOne();
   }
-  
 
   async update(id: number, updateSponsorshipDto: UpdateSponsorshipDto) {
     await this.sponsorshipRepository.update(id, updateSponsorshipDto);

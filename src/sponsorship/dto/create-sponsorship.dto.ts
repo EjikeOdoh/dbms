@@ -1,12 +1,23 @@
-import { ApiProperty, ApiPropertyOptional, ApiResponse, OmitType, PickType } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from '@nestjs/swagger';
+import {
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { ProgramType } from 'src/programs/entities/program.entity';
 
 export enum Currency {
   NGN = 'NGN',
   USD = 'USD',
   EUR = 'EUR',
-  NULL = ""
+  NULL = '',
 }
 
 export class CreateSponsorshipDto {
@@ -39,26 +50,30 @@ export class CreateSponsorshipDto {
   currency?: Currency;
 
   @ApiPropertyOptional({
-    example: "10 Dell Inspiron 4560 laptops"
+    example: '10 Dell Inspiron 4560 laptops',
   })
-  inkinddonation: string
+  inkinddonation: string;
 }
 
 export class CreateSponsorshipResponseDto extends CreateSponsorshipDto {
   @ApiProperty({ example: 1 })
-  id: number
+  id: number;
 }
 
-
-export class GetAllSponsorshipDto extends PickType(CreateSponsorshipResponseDto, ['id', 'amount', 'currency', 'year']) {
-  @ApiProperty({ example: "10 Dell Inspiron 4560 laptops" })
-  donation: string
+export class GetAllSponsorshipDto extends PickType(
+  CreateSponsorshipResponseDto,
+  ['id', 'amount', 'currency', 'year'],
+) {
+  @ApiProperty({ example: '10 Dell Inspiron 4560 laptops' })
+  donation: string;
 
   @ApiProperty({ example: 'F5' })
-  partner: string
+  partner: string;
 
   @ApiProperty({ example: ProgramType.ASCG, enum: ProgramType })
-  program: ProgramType
+  program: ProgramType;
 }
 
-export class GetPartnerSponsorshipsDto extends OmitType(GetAllSponsorshipDto, ['partner']) { }
+export class GetPartnerSponsorshipsDto extends OmitType(GetAllSponsorshipDto, [
+  'partner',
+]) {}

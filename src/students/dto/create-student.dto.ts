@@ -10,14 +10,18 @@ import {
   IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CreateGradeDto, GetStudentGradesResponseDto, GradeDto } from '../../grades/dto/create-grade.dto';
+import {
+  CreateGradeDto,
+  GetStudentGradesResponseDto,
+  GradeDto,
+} from '../../grades/dto/create-grade.dto';
 import { ProgramType } from 'src/programs/entities/program.entity';
 import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 
 export class CreateStudentDto {
   @ApiProperty({
     example: 'GSS Kagini',
-    required: true
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -26,7 +30,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'SS2',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -35,7 +39,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Precious',
-    required: true
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -44,7 +48,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Isa',
-    required: true
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -60,7 +64,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Behind Chief Palace, Kagini',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -69,7 +73,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Nigeria',
-    required: true
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -78,7 +82,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: '08010002000',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -87,7 +91,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'preciousisa@email.com',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -96,7 +100,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Matthew',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -105,7 +109,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Isa',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -114,7 +118,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: '08130001000',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -123,7 +127,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'BSC',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -132,7 +136,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Civil Servant',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -141,7 +145,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Isa',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -150,7 +154,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Margaret',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -159,7 +163,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: '09010002000',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -168,7 +172,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'SSCE',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -177,7 +181,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Businesswoman',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -186,7 +190,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 1,
-    required: false
+    required: false,
   })
   @IsNumber()
   @IsOptional()
@@ -194,7 +198,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 2,
-    required: false
+    required: false,
   })
   @IsNumber()
   @IsOptional()
@@ -202,7 +206,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Second',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -211,7 +215,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Science',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -220,7 +224,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Biology',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -229,7 +233,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Further Maths',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -238,7 +242,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Neurosurgeon',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -247,7 +251,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     example: 'Pharmacist',
-    required: false
+    required: false,
   })
   @IsString()
   @IsOptional()
@@ -266,7 +270,7 @@ export class CreateStudentDto {
   @ApiProperty({
     example: ProgramType.ASCG,
     required: false,
-    enum: ProgramType
+    enum: ProgramType,
   })
   @IsEnum(ProgramType)
   @IsNotEmpty()
@@ -274,7 +278,7 @@ export class CreateStudentDto {
 
   @ApiProperty({
     required: true,
-    example: 2025
+    example: 2025,
   })
   @IsInt()
   @IsNotEmpty()
@@ -282,37 +286,48 @@ export class CreateStudentDto {
 
   @ApiProperty({
     required: true,
-    example: 2
+    example: 2,
   })
   @IsInt()
   @IsNotEmpty()
   quarter: number;
 }
 
-
-export class FilterStudentsResponseDto extends PickType(CreateStudentDto, ['firstName', 'lastName', 'dob', 'country']) {
+export class FilterStudentsResponseDto extends PickType(CreateStudentDto, [
+  'firstName',
+  'lastName',
+  'dob',
+  'country',
+]) {
   @ApiProperty({ example: 1 })
-  participationId: number
+  participationId: number;
 
   @ApiProperty({ example: 1 })
-  studentId: number
+  studentId: number;
 
   @ApiProperty({ example: 2025 })
-  year: number
+  year: number;
 
   @ApiProperty({ example: ProgramType.ASCG, enum: ProgramType })
-  program: ProgramType
+  program: ProgramType;
 }
 
-export class CreateStudentResponseDto extends OmitType(CreateStudentDto, ['grades', 'program', 'quarter', 'year']) {
+export class CreateStudentResponseDto extends OmitType(CreateStudentDto, [
+  'grades',
+  'program',
+  'quarter',
+  'year',
+]) {
   @ApiProperty()
-  id: number
+  id: number;
 
   @ApiProperty({ example: 2023 })
-  yearJoined: number
+  yearJoined: number;
 }
 
-export class UpdateStudentApiDto extends OmitType(CreateStudentResponseDto,['id']) {}
+export class UpdateStudentApiDto extends OmitType(CreateStudentResponseDto, [
+  'id',
+]) {}
 
 export class PaginationMetaDto {
   @ApiProperty()
@@ -337,8 +352,15 @@ export class PaginationMetaDto {
   hasPreviousPage: boolean;
 }
 
-export class GetStudentsResponseDto extends PickType(CreateStudentResponseDto, ['id', 'firstName', 'lastName', 'dob', 'school', 'country', 'yearJoined']) {
-}
+export class GetStudentsResponseDto extends PickType(CreateStudentResponseDto, [
+  'id',
+  'firstName',
+  'lastName',
+  'dob',
+  'school',
+  'country',
+  'yearJoined',
+]) {}
 
 export class GetAllStudentsResponseDto {
   @ApiProperty({ type: () => [GetStudentsResponseDto] })
@@ -353,7 +375,7 @@ export class GetSearchResponseDto {
   students: GetStudentsResponseDto[];
 
   @ApiProperty()
-  count: number
+  count: number;
 }
 
 export class ParticipationResponseDto {
@@ -372,9 +394,8 @@ export class ParticipationResponseDto {
 
 export class StudentResponseDto extends CreateStudentResponseDto {
   @ApiProperty({ type: () => [GetStudentGradesResponseDto] })
-  grades: GetStudentGradesResponseDto[]
+  grades: GetStudentGradesResponseDto[];
 
   @ApiProperty({ type: () => [ParticipationResponseDto] })
-  participations: ParticipationResponseDto[]
-
+  participations: ParticipationResponseDto[];
 }

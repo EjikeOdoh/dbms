@@ -1,9 +1,15 @@
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, Length, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  Length,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class GradeDto {
   @ApiPropertyOptional({
-    example: 'B'
+    example: 'B',
   })
   @IsString()
   @IsOptional()
@@ -11,7 +17,7 @@ export class GradeDto {
   english?: string;
 
   @ApiPropertyOptional({
-    example: 'C'
+    example: 'C',
   })
   @IsString()
   @IsOptional()
@@ -19,7 +25,7 @@ export class GradeDto {
   math?: string;
 
   @ApiPropertyOptional({
-    example: 'B'
+    example: 'B',
   })
   @IsString()
   @IsOptional()
@@ -27,7 +33,7 @@ export class GradeDto {
   chemistry?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
@@ -35,7 +41,7 @@ export class GradeDto {
   physics?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
@@ -43,7 +49,7 @@ export class GradeDto {
   government?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
@@ -51,7 +57,7 @@ export class GradeDto {
   economics?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
@@ -59,7 +65,7 @@ export class GradeDto {
   biology?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
@@ -67,7 +73,7 @@ export class GradeDto {
   commerce?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
@@ -75,37 +81,39 @@ export class GradeDto {
   literature?: string;
 
   @ApiPropertyOptional({
-    example: 'A'
+    example: 'A',
   })
   @IsString()
   @IsOptional()
   @Length(1, 1)
   accounting?: string;
-
 }
 
 export class CreateGradeDto extends GradeDto {
   @ApiProperty({
-    example:445
+    example: 445,
   })
   @IsInt()
   @IsNotEmpty()
   studentId?: number;
 
-  @ApiProperty({example: 2025})
+  @ApiProperty({ example: 2025 })
   @IsInt()
   @IsOptional()
   year?: number;
 }
 
 export class CreateGradesResponseDto extends CreateGradeDto {
-  @ApiProperty({example:1})
-  id: number
+  @ApiProperty({ example: 1 })
+  id: number;
 }
 
-export class GetStudentGradesResponseDto extends OmitType(CreateGradesResponseDto, ['studentId']) {}
+export class GetStudentGradesResponseDto extends OmitType(
+  CreateGradesResponseDto,
+  ['studentId'],
+) {}
 
- export class GetAllGradesResponseDto {
+export class GetAllGradesResponseDto {
   @ApiProperty()
   studentId: number;
 
