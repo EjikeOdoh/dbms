@@ -21,7 +21,7 @@ export class ParticipationService {
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Program) private programsRepository: Repository<Program>,
     private targetService: TargetService,
-  ) {}
+  ) { }
 
   async create(createParticipationDto: CreateParticipationDto) {
     const { studentId, programId, ...rest } = createParticipationDto;
@@ -76,13 +76,23 @@ export class ParticipationService {
     }
 
     // Get count by country
-    const countByCountry = await queryBuilder
+    const countByCountryLC = await queryBuilder
       .select([
-        'student.country AS country',
+        'LOWER(student.country) AS country',
         'COUNT(participation.id) AS count',
       ])
-      .groupBy('student.country')
+      .groupBy('LOWER(student.country)')
       .getRawMany();
+
+    const countByCountry = countByCountryLC.map(row => {
+      const c = row.country.toLowerCase()
+      const country = c.charAt(0).toUpperCase() + c.slice(1)
+      return {
+        country: country,
+        count: Number(row.count),
+      }
+    });
+
 
     // Get count by program
     const countByProgram = await queryBuilder
@@ -107,12 +117,23 @@ export class ParticipationService {
       .orderBy('participation.year', 'ASC')
       .getRawMany();
 
-    // Get count by country
-    const totalCountByCountry = await this.studentsRepository
+    // Get count by country (case-insensitive)
+    const totalCountByCountryRaw = await this.studentsRepository
       .createQueryBuilder('student')
-      .select(['student.country AS country', 'COUNT(student.id) AS count'])
-      .groupBy('student.country')
+      .select(['LOWER(student.country) AS country', 'COUNT(student.id) AS count'])
+      .groupBy('LOWER(student.country)')
       .getRawMany();
+
+    // Capitalize country names
+    const totalCountByCountry = totalCountByCountryRaw.map(row => {
+      const c = row.country.toLowerCase()
+      const country = c.charAt(0).toUpperCase() + c.slice(1)
+      return {
+        country: country,
+        count: Number(row.count),
+      }
+    });
+
 
     return {
       year: year ?? 'All',
