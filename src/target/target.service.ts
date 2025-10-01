@@ -56,10 +56,11 @@ export class TargetService {
 
   async findTargetByYear(year: number): Promise<number> {
     try {
-      const { target } = await this.targetRepository.findOne({
+      const targetObj = await this.targetRepository.findOne({
         where: { year },
       });
-      return target;
+
+      return targetObj ? targetObj.target : 0;
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(

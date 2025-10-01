@@ -16,7 +16,12 @@ import {
   GradeDto,
 } from '../../grades/dto/create-grade.dto';
 import { ProgramType } from 'src/programs/entities/program.entity';
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  OmitType,
+  PickType,
+} from '@nestjs/swagger';
 
 export class CreateStudentDto {
   @ApiProperty({
@@ -291,6 +296,12 @@ export class CreateStudentDto {
   @IsInt()
   @IsNotEmpty()
   quarter: number;
+
+  @ApiPropertyOptional({
+    example: '2025-CBC-Q2',
+  })
+  @IsOptional()
+  tag: string | null;
 }
 
 export class FilterStudentsResponseDto extends PickType(CreateStudentDto, [

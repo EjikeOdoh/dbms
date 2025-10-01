@@ -61,4 +61,7 @@ export class StatsResponseDto {
 
   @ApiProperty()
   target: number;
+
+  @ApiProperty()
+  highestYearlyCount: number;
 }

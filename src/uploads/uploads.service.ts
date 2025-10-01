@@ -12,16 +12,18 @@ export class UploadsService {
   constructor(
     private studentsService: StudentsService,
     private participationService: ParticipationService,
-  ) {}
+  ) { }
 
   async processFile(filePath: string, data) {
     let records: any[];
     try {
       records = this.parseXLSX(filePath);
-      const studentsData = records.map((record) =>
-        this.mapToCreateStudentDto(record, data),
-      );
-      await this.studentsService.createMany(studentsData);
+      console.log(records)
+      // const studentsData = records.map((record) =>
+      //   this.mapToCreateStudentDto(record, data),
+      // );
+
+      // await this.studentsService.createMany(studentsData);
       return { upload: true };
     } catch (error) {
       console.log(error);
@@ -73,8 +75,10 @@ export class UploadsService {
     const workbook = XLSX.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-      raw: true,
+      raw: false,
+      dateNF: 'yyyy-mm-dd',
       defval: null,
+      rawNumbers: false,
     });
   }
 
@@ -119,7 +123,7 @@ export class UploadsService {
       focus: record['FOCUS'],
       favSubject: record['FAVORITE SUBJECT'],
       difficultSubject: record['DIFFICULT SUBJECT'],
-      careerChoice1: record['CAREER CHOICE 1'],
+      careerChoice1: record['CAREER CHOICE'],
       careerChoice2: record['CAREER CHOICE 2'],
       country: record['COUNTRY'],
       quarter: Number(data['quarter']),
@@ -137,6 +141,7 @@ export class UploadsService {
         literature: record['LITERATURE'],
         accounting: record['ACCOUNTING'],
       },
+      tag: data['tag'],
     };
   }
 }

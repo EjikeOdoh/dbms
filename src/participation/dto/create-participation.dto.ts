@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateParticipationDto {
   @ApiProperty({ example: 445 })
@@ -21,6 +21,12 @@ export class CreateParticipationDto {
   @IsInt()
   @IsNotEmpty()
   quarter: number;
+
+  @ApiPropertyOptional({
+    example: '2025 CBC 2',
+  })
+  @IsOptional()
+  tag: string | null;
 }
 
 export class CreatePartcicipationResponseDto extends CreateParticipationDto {

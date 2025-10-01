@@ -31,4 +31,7 @@ export class Participation {
 
   @Column({ type: 'int', nullable: false })
   quarter: number;
+
+  @Column({ nullable: true })
+  tag: string;
 }

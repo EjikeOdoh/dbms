@@ -7,7 +7,7 @@ import { CreateParticipationDto } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Participation } from './entities/participation.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { FilterDto } from './dto/filter.dto';
@@ -23,7 +23,7 @@ export class ParticipationService {
     private targetService: TargetService,
   ) { }
 
-  async create(createParticipationDto: CreateParticipationDto) {
+  async create(createParticipationDto: CreateParticipationDto, manager?: EntityManager) {
     const { studentId, programId, ...rest } = createParticipationDto;
 
     const student = await this.studentsRepository.findOne({
@@ -84,15 +84,23 @@ export class ParticipationService {
       .groupBy('LOWER(student.country)')
       .getRawMany();
 
-    const countByCountry = countByCountryLC.map(row => {
-      const c = row.country.toLowerCase()
-      const country = c.charAt(0).toUpperCase() + c.slice(1)
-      return {
-        country: country,
-        count: Number(row.count),
+    console.log(countByCountryLC);
+
+    const countByCountry = countByCountryLC.map((row) => {
+      if (row.country !== null) {
+        const c = row.country.toLowerCase();
+        const country = c.charAt(0).toUpperCase() + c.slice(1);
+        return {
+          country: country,
+          count: Number(row.count),
+        }
+      } else {
+        return {
+          country: null,
+          count: Number(row.count)
+        }
       }
     });
-
 
     // Get count by program
     const countByProgram = await queryBuilder
@@ -106,7 +114,7 @@ export class ParticipationService {
     // Get total count
     const totalCount = await queryBuilder.getCount();
 
-    // Count by year (always use fresh builder so it's not affected by previous filters)
+    // Count by year (fresh builder so it's not affected by previous filters)
     const countByYear = await this.participationRepository
       .createQueryBuilder('participation')
       .select([
@@ -117,23 +125,37 @@ export class ParticipationService {
       .orderBy('participation.year', 'ASC')
       .getRawMany();
 
+    const highestYearlyCount =
+      Math.max(...countByYear.map((obj) => obj.count)) | 0;
+
     // Get count by country (case-insensitive)
     const totalCountByCountryRaw = await this.studentsRepository
       .createQueryBuilder('student')
-      .select(['LOWER(student.country) AS country', 'COUNT(student.id) AS count'])
+      .select([
+        'LOWER(student.country) AS country',
+        'COUNT(student.id) AS count',
+      ])
       .groupBy('LOWER(student.country)')
       .getRawMany();
 
     // Capitalize country names
-    const totalCountByCountry = totalCountByCountryRaw.map(row => {
-      const c = row.country.toLowerCase()
-      const country = c.charAt(0).toUpperCase() + c.slice(1)
-      return {
-        country: country,
-        count: Number(row.count),
+    const totalCountByCountry = totalCountByCountryRaw.map((row) => {
+      if (row.country != null) {
+        const c = row.country.toLowerCase();
+        const country = c.charAt(0).toUpperCase() + c.slice(1);
+        return {
+          country: country,
+          count: Number(row.count),
+        };
+      } else {
+        return {
+          country: null,
+          count: Number(row.count)
+        }
       }
     });
 
+    const years = (await this.targetService.findAll()).map((x) => x.year);
 
     return {
       year: year ?? 'All',
@@ -143,7 +165,9 @@ export class ParticipationService {
       uniqueCount,
       countByYear,
       totalCountByCountry,
+      highestYearlyCount,
       target: target ?? 0,
+      years,
     };
   }
 

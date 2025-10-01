@@ -8,64 +8,63 @@ export class Student {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ description: 'Students school' })
-  @Column({ length: 50, nullable: false })
+  @Column({ nullable: true })
   school: string;
 
-  @Column({ length: 5, nullable: true })
+  @Column({ nullable: true })
   currentClass: string;
 
   //remember to change later
-  @Column({ length: 50, nullable: false })
+  @Column({ nullable: false })
   firstName: string;
 
-  @Column({ length: 50, nullable: false })
+  @Column({ nullable: false })
   lastName: string;
 
   @Column({ nullable: false })
   dob: Date;
 
-  @Column({ length: 100, nullable: true })
+  @Column({ nullable: true })
   address: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ nullable: true })
   phone: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   email: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ nullable: true })
   fatherLastName: string;
 
   // Come back later
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   country: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   fatherFirstName: string;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ nullable: true })
   fatherPhone: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ nullable: true })
   fatherEducation: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   fatherJob: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   motherLastName: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   motherFirstName: string;
 
-  @Column({ length: 30, nullable: true })
+  @Column({ nullable: true })
   motherPhone: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ nullable: true })
   motherEducation: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   motherJob: string;
 
   @Column({ nullable: true })
@@ -74,24 +73,27 @@ export class Student {
   @Column({ nullable: true })
   noOfBrothers: number;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ nullable: true })
   position: string;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ nullable: true })
   focus: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   favSubject: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   difficultSubject: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   careerChoice1: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ nullable: true })
   careerChoice2: string;
 
   @Column({ nullable: false })
   yearJoined: number;
+
+  @Column({ nullable: true })
+  tag: string;
 }

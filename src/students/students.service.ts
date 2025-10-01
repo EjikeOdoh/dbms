@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,90 +19,92 @@ import { ParticipationService } from 'src/participation/participation.service';
 export class StudentsService {
   constructor(
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
-    @InjectRepository(Participation)
-    private participationRepository: Repository<Participation>,
+    @InjectRepository(Participation) private participationRepository: Repository<Participation>,
     private gradesService: GradesService,
     @InjectRepository(Program) private programsService: Repository<Program>,
     private participationService: ParticipationService,
-  ) {}
+  ) { }
 
   async create(createStudentDto: CreateStudentDto) {
     const { grades, year, program, quarter, ...rest } = createStudentDto;
 
+    // Validate program exists
     const currentProgram = await this.programsService.findOne({
       where: { program },
     });
     if (!currentProgram) {
       throw new NotFoundException(`Program with name ${program} not found`);
     }
-    const student = this.studentsRepository.create({
-      ...rest,
-      yearJoined: year,
+
+    // Check if student already exists
+    const existingStudent = await this.studentsRepository.findOne({
+      where: {
+        firstName: rest.firstName,
+        lastName: rest.lastName,
+        dob: rest.dob,
+        school: rest.school,
+      },
     });
 
     try {
-      const newStudent = await this.studentsRepository.save(student);
+      let student = existingStudent;
+
+      // If student doesn't exist, create new student
+      if (!student) {
+        const newStudent = this.studentsRepository.create({
+          ...rest,
+          yearJoined: year,
+        });
+        student = await this.studentsRepository.save(newStudent);
+      } else {
+        // Update yearJoined if provided year is more recent
+        if (student.yearJoined < year) {
+          await this.update(student.id, { year: year });
+          student.yearJoined = year;
+        }
+      }
+
+      // Check for existing participation
+      const existingParticipation = await this.participationRepository.findOne({
+        where: {
+          student: { id: student.id },
+          program: { id: currentProgram.id },
+          year,
+          quarter,
+        },
+      });
+
+      // Create participation if it doesn't exist
+      if (!existingParticipation) {
+        await this.participationService.create({
+          studentId: student.id,
+          programId: currentProgram.id,
+          quarter,
+          year,
+          tag: createStudentDto.tag,
+        });
+      }
+
+      // Create grades if provided
       if (grades) {
         await this.gradesService.create({
           ...grades,
           year,
-          studentId: newStudent.id,
+          studentId: student.id,
         });
       }
-      await this.participationService.create({
-        studentId: newStudent.id,
-        programId: currentProgram.id,
-        quarter,
-        year,
-      });
 
-      return newStudent;
+      return student;
+
     } catch (error) {
       if (error.code === '23505') {
-        const existingStudent = await this.studentsRepository.findOne({
-          where: {
-            firstName: rest.firstName,
-            lastName: rest.lastName,
-            dob: rest.dob,
-            school: rest.school,
-          },
-        });
-
-        console.log(existingStudent);
-
-        if (existingStudent) {
-          const { id } = existingStudent;
-
-          const ep = await this.participationRepository.findOne({
-            where: {
-              student: existingStudent,
-              program: currentProgram,
-              year,
-              quarter,
-            },
-          });
-
-          console.log(ep);
-
-          await this.participationService.create({
-            studentId: id,
-            programId: currentProgram.id,
-            quarter,
-            year,
-          });
-
-          if (grades) {
-            await this.gradesService.create({
-              ...grades,
-              year,
-              studentId: existingStudent.id,
-            });
-          }
-        }
+        throw new ConflictException(
+          `Student with provided details already exists`,
+        );
       }
-      console.log(error);
+      console.error(error);
       throw new InternalServerErrorException(
-        `An unexpected error occurred while creating the student. ${createStudentDto.firstName} ${createStudentDto.lastName}`,
+        `An unexpected error occurred while processing student: ${rest.firstName} ${rest.lastName}`,
       );
     }
   }

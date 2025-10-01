@@ -8,7 +8,7 @@ import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Grade } from './entities/grade.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class GradesService {
     @InjectRepository(Grade) private gradesRepository: Repository<Grade>,
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
   ) {}
-  async create(createGradeDto: CreateGradeDto) {
+  async create(createGradeDto: CreateGradeDto, manager?: EntityManager) {
     const { studentId, ...rest } = createGradeDto;
     const student = await this.studentsRepository.findOne({
       where: { id: studentId },
