@@ -15,6 +15,7 @@ import { VolunteerParticipationModule } from './volunteer-participation/voluntee
 import { PartnersModule } from './partners/partners.module';
 import { SponsorshipModule } from './sponsorship/sponsorship.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     PartnersModule,
     SponsorshipModule,
     CloudinaryModule,
+    TagModule,
   ],
   controllers: [],
   providers: [],

@@ -12,18 +12,18 @@ export class UploadsService {
   constructor(
     private studentsService: StudentsService,
     private participationService: ParticipationService,
-  ) { }
+  ) {}
 
   async processFile(filePath: string, data) {
     let records: any[];
     try {
       records = this.parseXLSX(filePath);
-      console.log(records)
-      // const studentsData = records.map((record) =>
-      //   this.mapToCreateStudentDto(record, data),
-      // );
+      console.log(records);
+      const studentsData = records.map((record) =>
+        this.mapToCreateStudentDto(record, data),
+      );
 
-      // await this.studentsService.createMany(studentsData);
+      await this.studentsService.createMany(studentsData);
       return { upload: true };
     } catch (error) {
       console.log(error);

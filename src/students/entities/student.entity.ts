@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, Unique, Index } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('students')
 @Unique(['school', 'firstName', 'lastName', 'dob'])

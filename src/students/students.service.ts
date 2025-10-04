@@ -19,11 +19,12 @@ import { ParticipationService } from 'src/participation/participation.service';
 export class StudentsService {
   constructor(
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
-    @InjectRepository(Participation) private participationRepository: Repository<Participation>,
+    @InjectRepository(Participation)
+    private participationRepository: Repository<Participation>,
     private gradesService: GradesService,
     @InjectRepository(Program) private programsService: Repository<Program>,
     private participationService: ParticipationService,
-  ) { }
+  ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     const { grades, year, program, quarter, ...rest } = createStudentDto;
@@ -95,7 +96,6 @@ export class StudentsService {
       }
 
       return student;
-
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException(

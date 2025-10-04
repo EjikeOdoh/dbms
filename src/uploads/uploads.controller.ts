@@ -45,7 +45,7 @@ export class UploadsController {
       throw new Error('File upload failed or file path is undefined.');
     }
 
-    const tag = `${data.year}-${data.program}-Q${data.quarter}`;
+    const tag = file.originalname.split('.')[0];
 
     const filePath = path.resolve(file.path);
     return await this.uploadsService.processFile(filePath, { ...data, tag });

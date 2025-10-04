@@ -7,7 +7,7 @@ import { CreateParticipationDto } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Participation } from './entities/participation.entity';
-import { EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { FilterDto } from './dto/filter.dto';
@@ -21,9 +21,9 @@ export class ParticipationService {
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Program) private programsRepository: Repository<Program>,
     private targetService: TargetService,
-  ) { }
+  ) {}
 
-  async create(createParticipationDto: CreateParticipationDto, manager?: EntityManager) {
+  async create(createParticipationDto: CreateParticipationDto) {
     const { studentId, programId, ...rest } = createParticipationDto;
 
     const student = await this.studentsRepository.findOne({
@@ -93,12 +93,12 @@ export class ParticipationService {
         return {
           country: country,
           count: Number(row.count),
-        }
+        };
       } else {
         return {
           country: null,
-          count: Number(row.count)
-        }
+          count: Number(row.count),
+        };
       }
     });
 
@@ -150,8 +150,8 @@ export class ParticipationService {
       } else {
         return {
           country: null,
-          count: Number(row.count)
-        }
+          count: Number(row.count),
+        };
       }
     });
 
