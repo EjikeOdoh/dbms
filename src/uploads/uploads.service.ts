@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import { CreateStudentDto } from 'src/students/dto/create-student.dto';
@@ -18,15 +18,13 @@ export class UploadsService {
     let records: any[];
     try {
       records = this.parseXLSX(filePath);
-      console.log(records);
       const studentsData = records.map((record) =>
         this.mapToCreateStudentDto(record, data),
       );
-
       await this.studentsService.createMany(studentsData);
       return { upload: true };
     } catch (error) {
-      console.log(error);
+      Logger.log(error);
       throw new HttpException(
         'Error processing this file',
         HttpStatus.BAD_REQUEST,
@@ -101,20 +99,20 @@ export class UploadsService {
     return {
       school: record['SCHOOL'],
       currentClass: record['CLASS'],
-      firstName: record['FIRST NAME'],
-      lastName: record['LAST NAME'],
-      dob: record['DOB'],
+      firstName: record['FIRST NAME'].toString().trim(),
+      lastName: record['LAST NAME'].toString().trim(),
+      dob: new Date(record['DOB']),
       address: record['ADDRESS'],
-      phone: record['CELL NO.']?.toString(),
+      phone: record['CELL NO.'],
       email: record['E-MAIL'],
       fatherLastName: record["FATHER'S LAST NAME"],
       fatherFirstName: record["FATHER'S FIRST NAME"],
-      fatherPhone: record["FATHER'S CELL"]?.toString(),
+      fatherPhone: record["FATHER'S CELL"],
       fatherEducation: record["FATHER'S EDUCATION"],
       fatherJob: record["FATHER'S JOB"],
       motherLastName: record["MOTHER'S LAST NAME"],
       motherFirstName: record["MOTHER'S FIRST NAME"],
-      motherPhone: record["MOTHER'S CELL"]?.toString(),
+      motherPhone: record["MOTHER'S CELL"],
       motherEducation: record["MOTHER'S EDUCATION"],
       motherJob: record["MOTHER'S JOB"],
       noOfSisters: record['NO. OF SISTERS'],
@@ -125,13 +123,13 @@ export class UploadsService {
       difficultSubject: record['DIFFICULT SUBJECT'],
       careerChoice1: record['CAREER CHOICE'],
       careerChoice2: record['CAREER CHOICE 2'],
-      country: record['COUNTRY'],
+      country: record['COUNTRY'].toString().trim(),
       quarter: Number(data['quarter']),
       year: Number(data['year']),
       program: ProgramType[data['program']],
       grades: {
         english: record['ENGLISH'],
-        math: record['MATHEMATICS'],
+        math: record['MATHEMATICS'] || record['MATHS'],
         chemistry: record['CHEMISTRY'],
         physics: record['PHYSICS'],
         biology: record['BIOLOGY'],

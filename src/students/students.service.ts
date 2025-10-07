@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -24,7 +25,7 @@ export class StudentsService {
     private gradesService: GradesService,
     @InjectRepository(Program) private programsService: Repository<Program>,
     private participationService: ParticipationService,
-  ) {}
+  ) { }
 
   async create(createStudentDto: CreateStudentDto) {
     const { grades, year, program, quarter, ...rest } = createStudentDto;
@@ -38,14 +39,22 @@ export class StudentsService {
     }
 
     // Check if student already exists
-    const existingStudent = await this.studentsRepository.findOne({
-      where: {
-        firstName: rest.firstName,
-        lastName: rest.lastName,
-        dob: rest.dob,
-        school: rest.school,
-      },
-    });
+    const existingStudent = program !== 'CBC' ?
+      await this.studentsRepository.findOne({
+        where: {
+          firstName: rest.firstName,
+          lastName: rest.lastName,
+          dob: rest.dob,
+          school: rest.school,
+        },
+      }) :
+      await this.studentsRepository.findOne({
+        where: {
+          firstName: rest.firstName,
+          lastName: rest.lastName,
+          dob: rest.dob,
+        },
+      })
 
     try {
       let student = existingStudent;
@@ -59,7 +68,7 @@ export class StudentsService {
         student = await this.studentsRepository.save(newStudent);
       } else {
         // Update yearJoined if provided year is more recent
-        if (student.yearJoined < year) {
+        if (student.yearJoined > year) {
           await this.update(student.id, { year: year });
           student.yearJoined = year;
         }
@@ -87,22 +96,25 @@ export class StudentsService {
       }
 
       // Create grades if provided
-      if (grades) {
-        await this.gradesService.create({
-          ...grades,
-          year,
-          studentId: student.id,
-        });
+      if (grades && program === 'ASCG') {
+        const currentGrade = await this.gradesService.findGrade(student, year)
+        if (!currentGrade) {
+          await this.gradesService.create({
+            ...grades,
+            year,
+            studentId: student.id,
+          });
+        }
       }
 
       return student;
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException(
-          `Student with provided details already exists`,
+          `Student with provided details already exists: ${rest.firstName} ${rest.lastName}`,
         );
       }
-      console.error(error);
+      Logger.log(error);
       throw new InternalServerErrorException(
         `An unexpected error occurred while processing student: ${rest.firstName} ${rest.lastName}`,
       );

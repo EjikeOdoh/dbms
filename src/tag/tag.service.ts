@@ -21,6 +21,7 @@ export class TagService {
           'COUNT(participation.id) AS count',
         ])
         .groupBy('participation.tag')
+        .orderBy('participation.tag','DESC')
         .getRawMany();
     } catch (error) {
       Logger.log(error);

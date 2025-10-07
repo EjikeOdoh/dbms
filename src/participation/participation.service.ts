@@ -84,8 +84,6 @@ export class ParticipationService {
       .groupBy('LOWER(student.country)')
       .getRawMany();
 
-    console.log(countByCountryLC);
-
     const countByCountry = countByCountryLC.map((row) => {
       if (row.country !== null) {
         const c = row.country.toLowerCase();

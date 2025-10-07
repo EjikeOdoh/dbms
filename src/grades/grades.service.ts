@@ -71,6 +71,15 @@ export class GradesService {
       .getMany();
   }
 
+  async findGrade(student: Student, year: number) {
+    return this.gradesRepository.findOne({
+      where: {
+        student: student,
+        year: year
+      }
+    })
+  }
+
   async update(id: number, updateGradeDto: UpdateGradeDto) {
     await this.gradesRepository.update(id, updateGradeDto);
     return this.gradesRepository.findOne({ where: { id } });
