@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   Unique,
+  CreateDateColumn,
 } from 'typeorm';
 import { Student } from '../../students/entities/student.entity';
 import { Program } from '../../programs/entities/program.entity';
@@ -34,4 +35,7 @@ export class Participation {
 
   @Column({ nullable: true })
   tag: string;
+
+  @CreateDateColumn()
+  createdAt: Date
 }

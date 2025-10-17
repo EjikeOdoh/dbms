@@ -12,7 +12,7 @@ export class UploadsService {
   constructor(
     private studentsService: StudentsService,
     private participationService: ParticipationService,
-  ) {}
+  ) { }
 
   async processFile(filePath: string, data) {
     let records: any[];
@@ -76,7 +76,6 @@ export class UploadsService {
       raw: false,
       dateNF: 'yyyy-mm-dd',
       defval: null,
-      rawNumbers: false,
     });
   }
 

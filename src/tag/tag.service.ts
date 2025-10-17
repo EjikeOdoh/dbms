@@ -10,7 +10,7 @@ export class TagService {
     @InjectRepository(Participation)
     private participationRepository: Repository<Participation>,
     @InjectRepository(Student) private studentRepository: Repository<Student>,
-  ) {}
+  ) { }
 
   async findAll() {
     try {
@@ -19,9 +19,10 @@ export class TagService {
         .select([
           'participation.tag AS tag',
           'COUNT(participation.id) AS count',
+          'MAX(participation.createdAt) AS latestDate',
         ])
         .groupBy('participation.tag')
-        .orderBy('participation.tag','DESC')
+        .orderBy('latestDate', 'DESC')
         .getRawMany();
     } catch (error) {
       Logger.log(error);
