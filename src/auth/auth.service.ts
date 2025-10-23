@@ -15,6 +15,7 @@ export class AuthService {
   }> {
     const { name, password } = loginDto;
     const user = await this.usersService.findByName(name);
+
     if (user.password !== password) {
       throw new UnauthorizedException('Invalid login credentials');
     }

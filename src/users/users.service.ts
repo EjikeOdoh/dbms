@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -39,7 +39,7 @@ export class UsersService {
   async findByName(name: string) {
     const user = this.users.find((user) => user.name === name);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new UnauthorizedException('Invalid login credentials');
     }
     return user;
   }
