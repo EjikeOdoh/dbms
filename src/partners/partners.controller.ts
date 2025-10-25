@@ -132,7 +132,7 @@ export class PartnersController {
     @Param('id') id: string,
     @Body() updatePartnerDto: UpdatePartnerDto,
   ) {
-    return this.partnersService.update(+id, updatePartnerDto);
+    return this.partnersService.update(+id, updatePartnerDto, false);
   }
 
   @Patch(':id')
@@ -174,13 +174,19 @@ export class PartnersController {
       const uploadRes = await this.cloudinaryService.uploadImage(filePath);
       logoUrl = uploadRes.url;
       logoPublicId = uploadRes.public_id;
-    }
 
-    return this.partnersService.update(+id, {
-      ...updatePartnerDto,
-      logoUrl,
-      logoPublicId,
-    });
+      return this.partnersService.update(
+        +id,
+        {
+          ...updatePartnerDto,
+          logoUrl,
+          logoPublicId,
+        },
+        true,
+      );
+    } else {
+      return this.partnersService.update(+id, updatePartnerDto, false);
+    }
   }
 
   @Delete(':id')

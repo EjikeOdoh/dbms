@@ -55,4 +55,4 @@ import { TagModule } from './tag/tag.module';
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}

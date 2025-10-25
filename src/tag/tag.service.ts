@@ -10,7 +10,7 @@ export class TagService {
     @InjectRepository(Participation)
     private participationRepository: Repository<Participation>,
     @InjectRepository(Student) private studentRepository: Repository<Student>,
-  ) { }
+  ) {}
 
   async findAll() {
     try {

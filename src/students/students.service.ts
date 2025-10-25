@@ -25,7 +25,7 @@ export class StudentsService {
     private gradesService: GradesService,
     @InjectRepository(Program) private programsService: Repository<Program>,
     private participationService: ParticipationService,
-  ) { }
+  ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     const { grades, year, program, quarter, ...rest } = createStudentDto;
@@ -39,22 +39,23 @@ export class StudentsService {
     }
 
     // Check if student already exists
-    const existingStudent = program !== 'CBC' ?
-      await this.studentsRepository.findOne({
-        where: {
-          firstName: rest.firstName,
-          lastName: rest.lastName,
-          dob: rest.dob,
-          school: rest.school,
-        },
-      }) :
-      await this.studentsRepository.findOne({
-        where: {
-          firstName: rest.firstName,
-          lastName: rest.lastName,
-          dob: rest.dob,
-        },
-      })
+    const existingStudent =
+      program !== 'CBC'
+        ? await this.studentsRepository.findOne({
+            where: {
+              firstName: rest.firstName,
+              lastName: rest.lastName,
+              dob: rest.dob,
+              school: rest.school,
+            },
+          })
+        : await this.studentsRepository.findOne({
+            where: {
+              firstName: rest.firstName,
+              lastName: rest.lastName,
+              dob: rest.dob,
+            },
+          });
 
     try {
       let student = existingStudent;
@@ -97,7 +98,7 @@ export class StudentsService {
 
       // Create grades if provided
       if (grades && program === 'ASCG') {
-        const currentGrade = await this.gradesService.findGrade(student, year)
+        const currentGrade = await this.gradesService.findGrade(student, year);
         if (!currentGrade) {
           await this.gradesService.create({
             ...grades,

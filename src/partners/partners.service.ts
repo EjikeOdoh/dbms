@@ -58,13 +58,19 @@ export class PartnersService {
     return { ...partner, sponsorships };
   }
 
-  async update(id: number, updatePartnerDto: UpdatePartnerDto) {
+  async update(
+    id: number,
+    updatePartnerDto: UpdatePartnerDto,
+    newLogo: boolean,
+  ) {
     try {
       const { logoPublicId } = await this.partnerRepository.findOne({
         where: { id },
       });
       await this.partnerRepository.update(id, updatePartnerDto);
-      await this.cloudinaryService.deleteImage(logoPublicId);
+      if (newLogo) {
+        await this.cloudinaryService.deleteImage(logoPublicId);
+      }
       return await this.findOne(id);
     } catch (error) {
       console.log(error);

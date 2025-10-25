@@ -75,9 +75,9 @@ export class GradesService {
     return this.gradesRepository.findOne({
       where: {
         student: student,
-        year: year
-      }
-    })
+        year: year,
+      },
+    });
   }
 
   async update(id: number, updateGradeDto: UpdateGradeDto) {

@@ -37,5 +37,5 @@ export class Participation {
   tag: string;
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt: Date;
 }

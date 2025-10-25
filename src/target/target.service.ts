@@ -13,7 +13,7 @@ import { Repository } from 'typeorm';
 export class TargetService {
   constructor(
     @InjectRepository(Target) private targetRepository: Repository<Target>,
-  ) { }
+  ) {}
 
   async create(createTargetDto: CreateTargetDto) {
     const target = this.targetRepository.create(createTargetDto);
