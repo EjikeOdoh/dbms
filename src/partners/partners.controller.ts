@@ -167,20 +167,17 @@ export class PartnersController {
     @Param('id') id: string,
     @Body() updatePartnerDto: UpdatePartnerDto,
   ) {
-    let logoUrl: string;
-    let logoPublicId: string;
+
     if (logo) {
       const filePath = path.resolve(logo.path);
       const uploadRes = await this.cloudinaryService.uploadImage(filePath);
-      logoUrl = uploadRes.url;
-      logoPublicId = uploadRes.public_id;
 
       return this.partnersService.update(
         +id,
         {
           ...updatePartnerDto,
-          logoUrl,
-          logoPublicId,
+          logoUrl: uploadRes.url,
+          logoPublicId: uploadRes.public_id,
         },
         true,
       );
