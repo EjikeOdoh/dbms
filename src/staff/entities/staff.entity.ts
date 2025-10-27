@@ -27,6 +27,9 @@ export class Staff {
   @Column({ nullable: true})
   phone: string;
 
+  @Column({ nullable: true})
+  email: string;
+
   @Column({ nullable: true })
   location: string;
 
