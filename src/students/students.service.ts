@@ -28,7 +28,7 @@ export class StudentsService {
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
-    const { grades, year, program, quarter, ...rest } = createStudentDto;
+    const { grades, year, program, quarter, firstName, lastName, ...rest } = createStudentDto;
 
     // Validate program exists
     const currentProgram = await this.programsService.findOne({
@@ -43,16 +43,16 @@ export class StudentsService {
       program !== 'CBC'
         ? await this.studentsRepository.findOne({
             where: {
-              firstName: rest.firstName,
-              lastName: rest.lastName,
+              firstName: firstName,
+              lastName: lastName,
               dob: rest.dob,
               school: rest.school,
             },
           })
         : await this.studentsRepository.findOne({
             where: {
-              firstName: rest.firstName,
-              lastName: rest.lastName,
+              firstName: firstName,
+              lastName: lastName,
               dob: rest.dob,
             },
           });
@@ -112,12 +112,12 @@ export class StudentsService {
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException(
-          `Student with provided details already exists: ${rest.firstName} ${rest.lastName}`,
+          `Student with provided details already exists: ${firstName} ${lastName}`,
         );
       }
       Logger.log(error);
       throw new InternalServerErrorException(
-        `An unexpected error occurred while processing student: ${rest.firstName} ${rest.lastName}`,
+        `An unexpected error occurred while processing student: ${firstName} ${lastName}`,
       );
     }
   }

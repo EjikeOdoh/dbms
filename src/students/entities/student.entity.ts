@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, Index, BeforeInsert, BeforeUpdate } from 'typeorm';
 
 @Entity('students')
-@Unique(['school', 'firstName', 'lastName', 'dob'])
+@Unique(['school', 'combo', 'dob'])
 @Index('idx_student_fullname', ['firstName', 'lastName'])
 export class Student {
   @PrimaryGeneratedColumn()
@@ -95,4 +95,17 @@ export class Student {
 
   @Column({ nullable: true })
   tag: string;
+
+  @Column({ nullable: true, unique: true })
+  combo: string;
+
+  // Automatically compute combo before save/update
+  @BeforeInsert()
+  @BeforeUpdate()
+  setCombo() {
+    if (this.firstName && this.lastName) {
+      const [a, b] = [this.firstName.trim().toLowerCase(), this.lastName.trim().toLowerCase()].sort();
+      this.combo = `${a}_${b}`;
+    }
+  }
 }
