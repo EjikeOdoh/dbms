@@ -64,6 +64,8 @@ export class StudentsService {
       if (!student) {
         const newStudent = this.studentsRepository.create({
           ...rest,
+          firstName,
+          lastName,
           yearJoined: year,
         });
         student = await this.studentsRepository.save(newStudent);
