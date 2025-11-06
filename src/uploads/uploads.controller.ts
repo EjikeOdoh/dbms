@@ -16,7 +16,7 @@ import { UploadsService } from './uploads.service';
 import { FilterDto } from 'src/participation/dto/filter.dto';
 import { Response } from 'express';
 import { Roles } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum.';
+import { Role } from 'src/enums/role.enum';
 
 @Controller('uploads')
 export class UploadsController {

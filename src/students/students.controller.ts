@@ -20,7 +20,7 @@ import {
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { PaginationDto } from './dto/pagination.dto';
 import { Roles } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum.';
+import { Role } from 'src/enums/role.enum';
 import {
   ApiBearerAuth,
   ApiBody,
