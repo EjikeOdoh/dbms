@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { comparePass } from 'src/utils/hash';
 
 @Injectable()
 export class AuthService {
@@ -15,8 +16,9 @@ export class AuthService {
   }> {
     const { email, password } = loginDto;
     const user = await this.usersService.findByName(email);
+    const isAuthenticated = await comparePass(password, user.password)
 
-    if (user.password !== password) {
+    if (!isAuthenticated) {
       throw new UnauthorizedException('Invalid login credentials');
     }
     const payload = {

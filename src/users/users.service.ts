@@ -11,6 +11,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 
+import { passHash } from 'src/utils/hash';
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -40,9 +42,11 @@ export class UsersService {
   // ];
 
   async create(createUserDto: CreateUserDto) {
-    const newUser = this.usersRepository.create(createUserDto)
+    const { password } = createUserDto
+    const hashedPass = await passHash(password)
+    const newUser = this.usersRepository.create({ ...createUserDto, password: hashedPass })
     try {
-      return await this.usersRepository.save(createUserDto)
+      return await this.usersRepository.save(newUser)
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException('This user already exists.');
@@ -70,13 +74,19 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    const user = await this.usersRepository.findOne({ where: { id }, select:['id','email','role'] });
+    const user = await this.usersRepository.findOne({ where: { id }, select: ['id', 'email', 'role'] });
     if (!user) throw new NotFoundException(`User with email "${id}" not found`);
     return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    await this.usersRepository.update(id, updateUserDto)
+
+    if (updateUserDto.password) {
+      const hashedPass = await passHash(updateUserDto.password)
+      await this.usersRepository.update(id, { ...updateUserDto, password: hashedPass })
+    } else {
+      await this.usersRepository.update(id, updateUserDto)
+    }
     return await this.findOne(id)
   }
 
