@@ -1,67 +1,87 @@
 import {
+  ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      name: 'admin',
-      password: 'password',
-      role: 'admin',
-    },
+  constructor(
+    @InjectRepository(User) private usersRepository: Repository<User>
+  ) { }
+  // private readonly users = [
+  //   {
+  //     id: 1,
+  //     email: 'admin@email.com',
+  //     password: 'password',
+  //     role: 'admin',
+  //   },
 
-    {
-      userId: 2,
-      name: 'editor',
-      password: 'password1',
-      role: 'editor',
-    },
+  //   {
+  //     id: 2,
+  //     email: 'editor',
+  //     password: 'password1',
+  //     role: 'editor',
+  //   },
 
-    {
-      userId: 3,
-      name: 'viewer',
-      password: 'password2',
-      role: 'viewer',
-    },
-  ];
+  //   {
+  //     id: 3,
+  //     email: 'viewer',
+  //     password: 'password2',
+  //     role: 'viewer',
+  //   },
+  // ];
 
-  create(createUserDto: CreateUserDto) {
-    console.log(createUserDto);
-    return 'This action adds a new user';
+  async create(createUserDto: CreateUserDto) {
+    const newUser = this.usersRepository.create(createUserDto)
+    try {
+      return await this.usersRepository.save(createUserDto)
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException('This user already exists.');
+      }
+      throw new InternalServerErrorException(
+        'An error occurred while creating this user',
+      );
+    }
   }
 
   findAll() {
-    return this.users;
+    return this.usersRepository.find({
+      select: ([
+        'id',
+        'email',
+        'role'
+      ])
+    });
   }
 
-  async findByName(name: string) {
-    const user = this.users.find((user) => user.name === name);
-    if (!user) {
-      throw new UnauthorizedException('Invalid login credentials');
-    }
+  async findByName(email: string) {
+    const user = await this.usersRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException(`User with email "${email}" not found`);
     return user;
   }
 
   async findOne(id: number) {
-    const user = this.users.find((user) => user.userId === id);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.usersRepository.findOne({ where: { id }, select:['id','email','role'] });
+    if (!user) throw new NotFoundException(`User with email "${id}" not found`);
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    console.log(updateUserDto);
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    await this.usersRepository.update(id, updateUserDto)
+    return await this.findOne(id)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) {
+    await this.usersRepository.delete(id)
+    return { delele: true }
   }
 }

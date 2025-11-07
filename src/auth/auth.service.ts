@@ -8,19 +8,19 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async login(loginDto: LoginDto): Promise<{
     token: string;
   }> {
-    const { name, password } = loginDto;
-    const user = await this.usersService.findByName(name);
+    const { email, password } = loginDto;
+    const user = await this.usersService.findByName(email);
 
     if (user.password !== password) {
       throw new UnauthorizedException('Invalid login credentials');
     }
     const payload = {
-      sub: user.userId,
+      sub: user.id,
       role: user.role,
     };
     return {
@@ -30,6 +30,6 @@ export class AuthService {
 
   async getProfile(id: number) {
     const user = await this.usersService.findOne(id);
-    return { role: user.role, name: user.name };
+    return { role: user.role, name: user.email };
   }
 }

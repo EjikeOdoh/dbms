@@ -3,7 +3,7 @@ import { Role } from 'src/enums/role.enum';
 
 export class LoginDto {
   @ApiProperty({ example: 'admin' })
-  name: string;
+  email: string;
 
   @ApiProperty({ example: 'password' })
   password: string;
@@ -46,5 +46,5 @@ export class ProfileResponseDto {
   @ApiProperty({
     example: 'admin',
   })
-  name: string;
+  email: string;
 }
