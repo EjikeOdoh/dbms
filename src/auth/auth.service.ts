@@ -31,7 +31,6 @@ export class AuthService {
   }
 
   async getProfile(id: number) {
-    const user = await this.usersService.findOne(id);
-    return { role: user.role, name: user.email };
+   return await this.usersService.findOne(id);
   }
 }

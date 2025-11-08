@@ -3,7 +3,6 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,28 +17,6 @@ export class UsersService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>
   ) { }
-  // private readonly users = [
-  //   {
-  //     id: 1,
-  //     email: 'admin@email.com',
-  //     password: 'password',
-  //     role: 'admin',
-  //   },
-
-  //   {
-  //     id: 2,
-  //     email: 'editor',
-  //     password: 'password1',
-  //     role: 'editor',
-  //   },
-
-  //   {
-  //     id: 3,
-  //     email: 'viewer',
-  //     password: 'password2',
-  //     role: 'viewer',
-  //   },
-  // ];
 
   async create(createUserDto: CreateUserDto) {
     const { password } = createUserDto
@@ -62,7 +39,7 @@ export class UsersService {
       select: ([
         'id',
         'email',
-        'role'
+        'role', 'firstName', 'lastName',
       ])
     });
   }
@@ -74,7 +51,7 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    const user = await this.usersRepository.findOne({ where: { id }, select: ['id', 'email', 'role'] });
+    const user = await this.usersRepository.findOne({ where: { id }, select: ['id', 'firstName', 'lastName', 'email', 'role'] });
     if (!user) throw new NotFoundException(`User with email "${id}" not found`);
     return user;
   }
