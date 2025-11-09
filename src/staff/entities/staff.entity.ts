@@ -24,10 +24,10 @@ export class Staff {
   @Column({ nullable: true })
   address: string;
 
-  @Column({ nullable: true})
+  @Column({ nullable: true })
   phone: string;
 
-  @Column({ nullable: true})
+  @Column({ nullable: true })
   email: string;
 
   @Column({ nullable: true })
@@ -59,4 +59,7 @@ export class Staff {
 
   @Column({ nullable: true })
   cpPhone2: string;
+
+  @Column({ nullable: true, default: false })
+  hasAccount: boolean
 }

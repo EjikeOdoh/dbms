@@ -14,5 +14,6 @@ import { VolunteerParticipationModule } from 'src/volunteer-participation/volunt
     TypeOrmModule.forFeature([Volunteer, VolunteerParticipation, Program]),
     VolunteerParticipationModule,
   ],
+  exports: [VolunteersService]
 })
-export class VolunteersModule {}
+export class VolunteersModule { }

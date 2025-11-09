@@ -1,14 +1,19 @@
-import { Role } from "src/enums/role.enum";
-import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn, Unique } from 'typeorm';
+import { Staff } from '../../staff/entities/staff.entity'
+import { Volunteer } from '../../volunteers/entities/volunteer.entity';
+import { Role } from 'src/enums/role.enum';
 
 @Entity('users')
 @Unique(['email'])
 export class User {
     @PrimaryGeneratedColumn()
-    id: number
+    id: number;
 
     @Column({ nullable: false })
-    email: string
+    email: string;
+
+    @Column({ nullable: false })
+    password: string;
 
     @Column({ nullable: true })
     firstName: string
@@ -19,10 +24,15 @@ export class User {
     @Column({
         type: 'enum',
         enum: Role,
-        default: Role.Viewer
+        default: Role.Viewer,
     })
     role: Role;
 
-    @Column({ nullable: false })
-    password: string
+    @OneToOne(() => Staff, { nullable: true })
+    @JoinColumn()
+    staff?: Staff;
+
+    @OneToOne(() => Volunteer, { nullable: true })
+    @JoinColumn()
+    volunteer?: Volunteer;
 }

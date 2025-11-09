@@ -65,4 +65,7 @@ export class Volunteer {
 
   @Column({ nullable: true })
   cpPhone2: string;
+
+  @Column({ nullable: true, default: false })
+  hasAccount: boolean
 }
