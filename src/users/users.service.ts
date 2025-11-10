@@ -164,12 +164,12 @@ export class UsersService {
       const staff = await this.staffService.findOne(staffId);
       if (!staff) throw new NotFoundException('Staff not found');
       user.staff = staff;
-      user.volunteer = null; // clear volunteer if switching
+      user.volunteer = null;
     } else if (volunteerId) {
       const volunteer = await this.volunteerService.findOne(volunteerId);
       if (!volunteer) throw new NotFoundException('Volunteer not found');
       user.volunteer = volunteer;
-      user.staff = null; // clear staff if switching
+      user.staff = null;
     }
 
     const updatedUser = this.usersRepository.save(user);
