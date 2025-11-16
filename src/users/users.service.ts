@@ -67,6 +67,8 @@ export class UsersService {
         id: true,
         role: true,
         email: true,
+        firstName: true,
+        lastName: true,
         staff: {
           firstName: true,
           lastName: true

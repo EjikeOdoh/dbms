@@ -38,8 +38,10 @@ export class StaffService {
           'staff.staffId',
           'staff.firstName',
           'staff.lastName',
+          'staff.email',
           'staff.active',
           'staff.role',
+          'staff.hasAccount'
         ])
         .getMany();
       return staff;
