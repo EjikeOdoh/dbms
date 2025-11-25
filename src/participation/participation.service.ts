@@ -10,7 +10,7 @@ import { Participation } from './entities/participation.entity';
 import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
-import { FilterDto } from './dto/filter.dto';
+import { FilterByCountryDto, FilterDto, ParticipationReportDto } from './dto/filter.dto';
 import { TargetService } from 'src/target/target.service';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class ParticipationService {
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Program) private programsRepository: Repository<Program>,
     private targetService: TargetService,
-  ) {}
+  ) { }
 
   async create(createParticipationDto: CreateParticipationDto) {
     const { studentId, programId, ...rest } = createParticipationDto;
@@ -214,6 +214,125 @@ export class ParticipationService {
       program: result.program,
       // count: result.count,
     }));
+  }
+
+  async findByCountry(filterByCountryDto?: FilterByCountryDto) {
+    // safe parsing
+    const page = Number(filterByCountryDto?.page ?? 1);
+    const limit = Number(filterByCountryDto?.limit ?? 10);
+    const skip = (page - 1) * limit;
+
+    // build where clause pieces and parameters
+    const whereParts: string[] = [];
+    const params: any[] = []; // will be used for id query (then we'll append limit & offset)
+
+    if (filterByCountryDto?.country) {
+      params.push(filterByCountryDto.country);
+      // we'll use LOWER(...) = LOWER($n)
+      whereParts.push(`LOWER(s.country) = LOWER($${params.length})`);
+    }
+
+    if (filterByCountryDto?.year != null) {
+      params.push(filterByCountryDto.year);
+      whereParts.push(`p.year = $${params.length}`);
+    }
+
+    const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+
+    // ----------------------------
+    // 1) get paginated ids (guaranteed LIMIT/OFFSET)
+    // ----------------------------
+    // note: adjust column names if your DB uses different naming/casing
+    const idSql = `
+      SELECT p.id
+      FROM participation p
+      LEFT JOIN students s ON s.id = p."studentId"
+      ${whereSql}
+      ORDER BY p.year DESC, p.quarter DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+
+    // paramsForIdQuery = [ country?, year?, limit, offset ]
+    const paramsForIdQuery = params.concat([limit, skip]);
+
+    const idRows: Array<{ id: string | number }> = await this.participationRepository.query(
+      idSql,
+      paramsForIdQuery,
+    );
+
+    const ids = idRows.map(r => r.id);
+
+    // ----------------------------
+    // 2) get total count with same filters (no limit/offset)
+    // ----------------------------
+    const countSql = `
+      SELECT COUNT(*)::int AS count
+      FROM participation p
+      LEFT JOIN students s ON s.id = p."studentId"
+      ${whereSql}
+    `;
+
+    // paramsForCountQuery is just the original params (no limit/offset)
+    const countRows: Array<{ count: number }> = await this.participationRepository.query(
+      countSql,
+      params,
+    );
+    const total = countRows[0]?.count ?? 0;
+
+    // if no ids found, return empty early
+    if (ids.length === 0) {
+      return {
+        data: [],
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          nextPage: page < Math.ceil(total / limit) ? page + 1 : null,
+          hasNextPage: page * limit < total,
+          hasPreviousPage: page > 1,
+        },
+      };
+    }
+
+    // ----------------------------
+    // 3) fetch final data for these ids (joins)
+    // ----------------------------
+    // Use Postgres ANY($1) to pass array of ids as single param
+    const dataSql = `
+      SELECT
+        s.id AS id,
+        s."firstName" AS "firstName",
+        s."lastName" AS "lastName",
+        s.dob AS dob,
+        s.country AS country,
+        pr.program AS program,
+        p.quarter AS quarter,
+        p.year AS year
+      FROM participation p
+      LEFT JOIN students s ON s.id = p."studentId"
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      WHERE p.id = ANY($1)
+      ORDER BY p.year DESC, p.quarter DESC
+    `;
+
+    const data: any[] = await this.participationRepository.query(dataSql, [ids]);
+
+    // ----------------------------
+    // 4) return results
+    // ----------------------------
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        nextPage: page < Math.ceil(total / limit) ? page + 1 : null,
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {

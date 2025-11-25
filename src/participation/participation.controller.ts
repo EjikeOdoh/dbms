@@ -14,7 +14,7 @@ import {
   CreateParticipationDto,
 } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
-import { FilterDto } from './dto/filter.dto';
+import { FilterByCountryDto, FilterDto } from './dto/filter.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -79,6 +79,13 @@ export class ParticipationController {
   async filter(@Query() filterDto: FilterDto) {
     return this.participationService.findByOptions(filterDto);
   }
+
+
+  @Get('filter-by-country')
+  async filterByCountry(@Query() filterByCountryDto: FilterByCountryDto) {
+    return this.participationService.findByCountry(filterByCountryDto)
+  }
+
 
   @Get(':id')
   @Get(':id')
