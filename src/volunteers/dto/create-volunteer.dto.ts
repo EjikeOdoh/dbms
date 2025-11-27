@@ -153,6 +153,10 @@ export class CreateVolunteerDto {
   @IsString()
   @IsOptional()
   cpPhone2: string;
+
+  @IsBoolean()
+  @IsOptional()
+  hasAccount?: boolean = false
 }
 
 export class CreateVolunteerResponseDto extends OmitType(CreateVolunteerDto, [

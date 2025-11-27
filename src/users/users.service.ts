@@ -181,7 +181,14 @@ export class UsersService {
 
 
   async remove(id: number) {
+    const user = await this.findOne(id)
+    if (user.staff) {
+      await this.staffService.update(user.staff.id, { hasAccount: false });
+    } else if (user.volunteer) {
+      await this.volunteerService.update(user.volunteer.id, { hasAccount: false });
+    }
     await this.usersRepository.delete(id)
+
     return { delele: true }
   }
 }

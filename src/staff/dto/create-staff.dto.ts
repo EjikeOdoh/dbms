@@ -93,6 +93,11 @@ export class CreateStaffDto {
   @IsString()
   @IsOptional()
   cpPhone2: string;
+
+  @IsBoolean()
+  @IsOptional()
+  hasAccount?: boolean = false
+
 }
 
 export class CreateStaffResponseDto extends CreateStaffDto {
