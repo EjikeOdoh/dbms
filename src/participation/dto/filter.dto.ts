@@ -50,3 +50,20 @@ export class ParticipationReportDto {
   quarter: string
   year: number
 }
+
+export type AgeRangeSummary = {
+  range: string;
+  count: number;
+};
+
+
+export type ProgramBreakdownGrouped = {
+  year: number | null,
+  ageGroup: AgeRangeSummary[]
+  programs: {
+    [program: string]: {
+      quarter: number
+      count: number
+    }[];
+  };
+};

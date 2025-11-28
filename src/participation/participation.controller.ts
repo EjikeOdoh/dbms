@@ -86,6 +86,10 @@ export class ParticipationController {
     return this.participationService.findByCountry(filterByCountryDto)
   }
 
+  @Get('breakdown')
+  async countPerPhase(@Query('year') year?: number) {
+    return this.participationService.getProgramBreakdown(year)
+  }
 
   @Get(':id')
   @Get(':id')
