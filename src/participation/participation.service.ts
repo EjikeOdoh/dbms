@@ -10,7 +10,7 @@ import { Participation } from './entities/participation.entity';
 import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
-import { AgeRangeSummary, FilterByCountryDto, FilterDto, ParticipationReportDto, ProgramBreakdownGrouped } from './dto/filter.dto';
+import { AgeRangeSummary, DBQuery, FilterByCountryDto, FilterDto, QuarterGroup, QuarterlyProgramBreakdown } from './dto/filter.dto';
 import { TargetService } from 'src/target/target.service';
 
 @Injectable()
@@ -349,25 +349,14 @@ export class ParticipationService {
       .addOrderBy('program.program', 'ASC');
 
     const programRaw = await programQB.getRawMany();
-
-    const grouped: {
-      year: number | null;
-      programs: Record<string, { quarter: number; count: number }[]>;
-      ageRanges: { range: string; count: number }[];
-    } = {
+    const grouped: QuarterlyProgramBreakdown = {
       year: year ?? null,
-      programs: {},
+      programs: [],
       ageRanges: [],
     };
 
-    for (const row of programRaw) {
-      if (!grouped.programs[row.program]) grouped.programs[row.program] = [];
-
-      grouped.programs[row.program].push({
-        quarter: Number(row.quarter),
-        count: Number(row.count),
-      });
-    }
+    const programs = this.groupByQuarter(programRaw)
+    grouped.programs = programs
 
     const ageGroups = await this.getAgeRange(year)
     grouped.ageRanges = ageGroups;
@@ -379,7 +368,7 @@ export class ParticipationService {
   async getAgeRange(year?: number): Promise<AgeRangeSummary[]> {
     const ageCase = `
       CASE
-        WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 0 AND 17 THEN '0-12'
+        WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 0 AND 17 THEN '13-17'
         WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 18 AND 23 THEN '18-23'
         ELSE '24-30'
       END
@@ -401,6 +390,22 @@ export class ParticipationService {
     }));
 
     return ageGroups
+  }
+
+
+  groupByQuarter(data: DBQuery[]) {
+    const grouped: Record<string, QuarterGroup> = data.reduce((acc, item) => {
+      const q = `Q${item.quarter}`;
+      if (!acc[q]) acc[q] = { quarter: q };
+      acc[q][item.program] = Number(item.count);
+
+      return acc;
+    }, {} as Record<string, QuarterGroup>);
+
+    // return sorted array
+    return Object.values(grouped).sort(
+      (a, b) => Number(a.quarter.slice(1)) - Number(b.quarter.slice(1))
+    );
   }
 
 
