@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateParticipationDto } from './dto/create-participation.dto';
@@ -49,7 +50,7 @@ export class ParticipationService {
     try {
       return await this.participationRepository.save(participation);
     } catch (error) {
-      console.log(error);
+      Logger.log(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating this record.',
       );
@@ -315,6 +316,109 @@ export class ParticipationService {
     };
   }
 
+  async findByProgram(filterByProgramDto?: FilterByCountryDto) {
+    const page = Number(filterByProgramDto?.page ?? 1);
+    const limit = Number(filterByProgramDto?.limit ?? 10);
+    const skip = (page - 1) * limit;
+  
+    const whereParts: string[] = [];
+    const params: any[] = [];
+  
+    // Filter by program name (case-insensitive search on enum)
+    if (filterByProgramDto?.program) {
+      params.push(`%${filterByProgramDto.program.toLowerCase()}%`);
+      // Cast enum to text before applying LOWER() and LIKE
+      whereParts.push(`LOWER(pr.program::text) LIKE $${params.length}`);
+    }
+  
+    if (filterByProgramDto?.year != null) {
+      params.push(filterByProgramDto.year);
+      whereParts.push(`p.year = $${params.length}`);
+    }
+  
+    const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+  
+    // 1. Get paginated IDs
+    const idSql = `
+      SELECT p.id
+      FROM participation p
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      LEFT JOIN students s ON s.id = p."studentId"
+      ${whereSql}
+      ORDER BY p.year DESC, p.quarter DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+  
+    const idRows: Array<{ id: number }> = await this.participationRepository.query(
+      idSql,
+      [...params, limit, skip],
+    );
+  
+    const ids = idRows.map(r => r.id);
+  
+    // 2. Count total
+    const countSql = `
+      SELECT COUNT(*)::int AS count
+      FROM participation p
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      ${whereSql}
+    `;
+  
+    const [countRow] = await this.participationRepository.query(countSql, params);
+    const total = countRow?.count ?? 0;
+  
+    if (ids.length === 0) {
+      return {
+        data: [],
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+          hasPreviousPage: page > 1,
+          nextPage: page * limit < total ? page + 1 : null,
+          prevPage: page > 1 ? page - 1 : null,
+        },
+      };
+    }
+  
+    // 3. Final data – also cast enum to text for output (optional but clean)
+    const dataSql = `
+      SELECT
+        s.id AS "studentId",
+        s."firstName" AS "firstName",
+        s."lastName" AS "lastName",
+        s.dob AS dob,
+        s.country AS country,
+        pr.program::text AS program,
+        p.quarter AS quarter,
+        p.year AS year,
+        p.tag AS tag
+      FROM participation p
+      LEFT JOIN students s ON s.id = p."studentId"
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      WHERE p.id = ANY($1)
+      ORDER BY p.year DESC, p.quarter DESC, s."firstName" ASC
+    `;
+  
+    const data = await this.participationRepository.query(dataSql, [ids]);
+  
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        nextPage: page * limit < total ? page + 1 : null,
+        prevPage: page > 1 ? page - 1 : null,
+      },
+    };
+  }
+
   async findOne(id: number) {
     return this.participationRepository.findOne({ where: { id } });
   }
@@ -368,7 +472,7 @@ export class ParticipationService {
   async getAgeRange(year?: number): Promise<AgeRangeSummary[]> {
     const ageCase = `
       CASE
-        WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 0 AND 17 THEN '13-17'
+        WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 0 AND 17 THEN '0-17'
         WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 18 AND 23 THEN '18-23'
         ELSE '24-30'
       END

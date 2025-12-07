@@ -23,6 +23,7 @@ export class FilterDto {
 
 export class FilterByCountryDto {
   country?: string
+  program?:string
   year?: number
   
   @IsOptional()
