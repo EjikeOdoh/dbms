@@ -30,6 +30,7 @@ export class TagService {
   }
 
   async remove(id: string) {
+    Logger.log('Delete tags')
     try {
       await this.studentRepository.delete({ tag: id });
       await this.participationRepository.delete({ tag: id });

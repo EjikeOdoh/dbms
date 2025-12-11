@@ -12,7 +12,7 @@ export class UploadsService {
   constructor(
     private studentsService: StudentsService,
     private participationService: ParticipationService,
-  ) {}
+  ) { }
 
   async processFile(filePath: string, data) {
     let records: any[];
@@ -70,14 +70,28 @@ export class UploadsService {
   }
 
   private parseXLSX(filePath: string): any[] {
-    const workbook = XLSX.readFile(filePath);
+    const workbook = XLSX.readFile(filePath, { sheetStubs: true });
     const sheetName = workbook.SheetNames[0];
-    return XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
+    const sheet = workbook.Sheets[sheetName];
+  
+    // Convert first
+    let rows = XLSX.utils.sheet_to_json(sheet, {
       raw: false,
       dateNF: 'yyyy-mm-dd',
-      defval: null,
+      defval: null
     });
+  
+    // ---- IMPORTANT PART: Stop at real last row ----
+    rows = rows.filter(row => {
+      // keep row only if it has at least one non-null + non-empty value
+      return Object.values(row).some(
+        val => val !== null && val !== undefined && val.toString().trim() !== ""
+      );
+    });
+  
+    return rows;
   }
+  
 
   private deleteFile(filePath: string): void {
     fs.unlink(filePath, (err) => {
@@ -95,6 +109,24 @@ export class UploadsService {
 
   // Transforming the data function
   private mapToCreateStudentDto(record: any, data): CreateStudentDto {
+
+    const firstName = record['FIRST NAME']?.toString().trim();
+    const lastName = record['LAST NAME']?.toString().trim();
+    const country = record['COUNTRY']?.toString().trim();
+  
+    // ---- VALIDATION ----
+    if (!firstName) {
+      throw new Error(JSON.stringify(record));
+    }
+    if (!lastName) {
+      throw new Error(JSON.stringify(record));
+
+    }
+    if (!country) {
+      throw new Error(JSON.stringify(record));
+
+    }
+
     return {
       school: record['SCHOOL'],
       currentClass: record['CLASS'],
