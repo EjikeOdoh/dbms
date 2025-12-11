@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateParticipationDto } from './dto/create-participation.dto';
@@ -10,7 +11,7 @@ import { Participation } from './entities/participation.entity';
 import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
-import { FilterByCountryDto, FilterDto, ParticipationReportDto } from './dto/filter.dto';
+import { AgeRangeSummary, DBQuery, FilterByCountryDto, FilterDto, QuarterGroup, QuarterlyProgramBreakdown } from './dto/filter.dto';
 import { TargetService } from 'src/target/target.service';
 
 @Injectable()
@@ -49,7 +50,7 @@ export class ParticipationService {
     try {
       return await this.participationRepository.save(participation);
     } catch (error) {
-      console.log(error);
+      Logger.log(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating this record.',
       );
@@ -217,18 +218,15 @@ export class ParticipationService {
   }
 
   async findByCountry(filterByCountryDto?: FilterByCountryDto) {
-    // safe parsing
     const page = Number(filterByCountryDto?.page ?? 1);
     const limit = Number(filterByCountryDto?.limit ?? 10);
     const skip = (page - 1) * limit;
 
-    // build where clause pieces and parameters
     const whereParts: string[] = [];
-    const params: any[] = []; // will be used for id query (then we'll append limit & offset)
+    const params: any[] = [];
 
     if (filterByCountryDto?.country) {
       params.push(filterByCountryDto.country);
-      // we'll use LOWER(...) = LOWER($n)
       whereParts.push(`LOWER(s.country) = LOWER($${params.length})`);
     }
 
@@ -239,10 +237,6 @@ export class ParticipationService {
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
-    // ----------------------------
-    // 1) get paginated ids (guaranteed LIMIT/OFFSET)
-    // ----------------------------
-    // note: adjust column names if your DB uses different naming/casing
     const idSql = `
       SELECT p.id
       FROM participation p
@@ -252,7 +246,6 @@ export class ParticipationService {
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
     `;
 
-    // paramsForIdQuery = [ country?, year?, limit, offset ]
     const paramsForIdQuery = params.concat([limit, skip]);
 
     const idRows: Array<{ id: string | number }> = await this.participationRepository.query(
@@ -262,9 +255,6 @@ export class ParticipationService {
 
     const ids = idRows.map(r => r.id);
 
-    // ----------------------------
-    // 2) get total count with same filters (no limit/offset)
-    // ----------------------------
     const countSql = `
       SELECT COUNT(*)::int AS count
       FROM participation p
@@ -272,14 +262,12 @@ export class ParticipationService {
       ${whereSql}
     `;
 
-    // paramsForCountQuery is just the original params (no limit/offset)
     const countRows: Array<{ count: number }> = await this.participationRepository.query(
       countSql,
       params,
     );
     const total = countRows[0]?.count ?? 0;
 
-    // if no ids found, return empty early
     if (ids.length === 0) {
       return {
         data: [],
@@ -295,10 +283,6 @@ export class ParticipationService {
       };
     }
 
-    // ----------------------------
-    // 3) fetch final data for these ids (joins)
-    // ----------------------------
-    // Use Postgres ANY($1) to pass array of ids as single param
     const dataSql = `
       SELECT
         s.id AS id,
@@ -318,9 +302,6 @@ export class ParticipationService {
 
     const data: any[] = await this.participationRepository.query(dataSql, [ids]);
 
-    // ----------------------------
-    // 4) return results
-    // ----------------------------
     return {
       data,
       meta: {
@@ -331,6 +312,109 @@ export class ParticipationService {
         nextPage: page < Math.ceil(total / limit) ? page + 1 : null,
         hasNextPage: page * limit < total,
         hasPreviousPage: page > 1,
+      },
+    };
+  }
+
+  async findByProgram(filterByProgramDto?: FilterByCountryDto) {
+    const page = Number(filterByProgramDto?.page ?? 1);
+    const limit = Number(filterByProgramDto?.limit ?? 10);
+    const skip = (page - 1) * limit;
+  
+    const whereParts: string[] = [];
+    const params: any[] = [];
+  
+    // Filter by program name (case-insensitive search on enum)
+    if (filterByProgramDto?.program) {
+      params.push(`%${filterByProgramDto.program.toLowerCase()}%`);
+      // Cast enum to text before applying LOWER() and LIKE
+      whereParts.push(`LOWER(pr.program::text) LIKE $${params.length}`);
+    }
+  
+    if (filterByProgramDto?.year != null) {
+      params.push(filterByProgramDto.year);
+      whereParts.push(`p.year = $${params.length}`);
+    }
+  
+    const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+  
+    // 1. Get paginated IDs
+    const idSql = `
+      SELECT p.id
+      FROM participation p
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      LEFT JOIN students s ON s.id = p."studentId"
+      ${whereSql}
+      ORDER BY p.year DESC, p.quarter DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+  
+    const idRows: Array<{ id: number }> = await this.participationRepository.query(
+      idSql,
+      [...params, limit, skip],
+    );
+  
+    const ids = idRows.map(r => r.id);
+  
+    // 2. Count total
+    const countSql = `
+      SELECT COUNT(*)::int AS count
+      FROM participation p
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      ${whereSql}
+    `;
+  
+    const [countRow] = await this.participationRepository.query(countSql, params);
+    const total = countRow?.count ?? 0;
+  
+    if (ids.length === 0) {
+      return {
+        data: [],
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+          hasPreviousPage: page > 1,
+          nextPage: page * limit < total ? page + 1 : null,
+          prevPage: page > 1 ? page - 1 : null,
+        },
+      };
+    }
+  
+    // 3. Final data – also cast enum to text for output (optional but clean)
+    const dataSql = `
+      SELECT
+        s.id AS "studentId",
+        s."firstName" AS "firstName",
+        s."lastName" AS "lastName",
+        s.dob AS dob,
+        s.country AS country,
+        pr.program::text AS program,
+        p.quarter AS quarter,
+        p.year AS year,
+        p.tag AS tag
+      FROM participation p
+      LEFT JOIN students s ON s.id = p."studentId"
+      LEFT JOIN programs pr ON pr.id = p."programId"
+      WHERE p.id = ANY($1)
+      ORDER BY p.year DESC, p.quarter DESC, s."firstName" ASC
+    `;
+  
+    const data = await this.participationRepository.query(dataSql, [ids]);
+  
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        nextPage: page * limit < total ? page + 1 : null,
+        prevPage: page > 1 ? page - 1 : null,
       },
     };
   }
@@ -348,4 +432,85 @@ export class ParticipationService {
     await this.participationRepository.delete(id);
     return { deleted: true };
   }
+
+  async getProgramBreakdown(year?: number) {
+    const programQB = this.participationRepository
+      .createQueryBuilder('p')
+      .leftJoin('p.program', 'program')
+      .leftJoin('p.student', 'student')
+      .select('p.year', 'year')
+      .addSelect('p.quarter', 'quarter')
+      .addSelect('program.program', 'program')
+      .addSelect('COUNT(student.id)', 'count');
+
+    if (year) programQB.where('p.year = :year', { year });
+
+    programQB.groupBy('p.year')
+      .addGroupBy('p.quarter')
+      .addGroupBy('program.program')
+      .orderBy('p.year', 'ASC')
+      .addOrderBy('p.quarter', 'ASC')
+      .addOrderBy('program.program', 'ASC');
+
+    const programRaw = await programQB.getRawMany();
+    const grouped: QuarterlyProgramBreakdown = {
+      year: year ?? null,
+      programs: [],
+      ageRanges: [],
+    };
+
+    const programs = this.groupByQuarter(programRaw)
+    grouped.programs = programs
+
+    const ageGroups = await this.getAgeRange(year)
+    grouped.ageRanges = ageGroups;
+
+    return grouped;
+  }
+
+
+  async getAgeRange(year?: number): Promise<AgeRangeSummary[]> {
+    const ageCase = `
+      CASE
+        WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 0 AND 17 THEN '0-17'
+        WHEN (p.year - EXTRACT(YEAR FROM student.dob)::int) BETWEEN 18 AND 23 THEN '18-23'
+        ELSE '24-30'
+      END
+    `;
+
+    const ageQB = this.participationRepository
+      .createQueryBuilder('p')
+      .leftJoin('p.student', 'student')
+      .select(`(${ageCase}) AS "ageRange"`)
+      .addSelect('COUNT(student.id)::int', 'count');
+
+    if (year) ageQB.where('p.year = :year', { year });
+
+    ageQB.groupBy(ageCase).orderBy(ageCase, 'ASC');
+
+    const ageGroups = (await ageQB.getRawMany()).map(r => ({
+      range: r.agerange || r.ageRange,
+      count: Number(r.count),
+    }));
+
+    return ageGroups
+  }
+
+
+  groupByQuarter(data: DBQuery[]) {
+    const grouped: Record<string, QuarterGroup> = data.reduce((acc, item) => {
+      const q = `Q${item.quarter}`;
+      if (!acc[q]) acc[q] = { quarter: q };
+      acc[q][item.program] = Number(item.count);
+
+      return acc;
+    }, {} as Record<string, QuarterGroup>);
+
+    // return sorted array
+    return Object.values(grouped).sort(
+      (a, b) => Number(a.quarter.slice(1)) - Number(b.quarter.slice(1))
+    );
+  }
+
+
 }

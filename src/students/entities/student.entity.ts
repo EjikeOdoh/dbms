@@ -96,7 +96,7 @@ export class Student {
   @Column({ nullable: true })
   tag: string;
 
-  @Column({ nullable: true, unique: true })
+  @Column({ nullable: true, unique: false })
   combo: string;
 
   // Automatically compute combo before save/update

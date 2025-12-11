@@ -23,6 +23,7 @@ export class FilterDto {
 
 export class FilterByCountryDto {
   country?: string
+  program?:string
   year?: number
   
   @IsOptional()
@@ -50,3 +51,28 @@ export class ParticipationReportDto {
   quarter: string
   year: number
 }
+
+export type AgeRangeSummary = {
+  range: string;
+  count: number;
+};
+
+
+export type QuarterlyProgramBreakdown = {
+  year: number | null;
+  programs: QuarterGroup[];
+  ageRanges: AgeRangeSummary[];
+};
+
+export type DBQuery = {
+  year: number;
+  quarter: number;
+  program: string;
+  count: string;
+}
+
+export type QuarterGroup = {
+  quarter: string;            
+  [program: string]: number | string;
+};
+

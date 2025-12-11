@@ -25,12 +25,12 @@ export class StudentsService {
     private gradesService: GradesService,
     @InjectRepository(Program) private programsService: Repository<Program>,
     private participationService: ParticipationService,
-  ) {}
+  ) { }
 
   async create(createStudentDto: CreateStudentDto) {
     const { grades, year, program, quarter, firstName, lastName, ...rest } = createStudentDto;
 
-    // Validate program exists
+    // program must exist
     const currentProgram = await this.programsService.findOne({
       where: { program },
     });
@@ -38,29 +38,26 @@ export class StudentsService {
       throw new NotFoundException(`Program with name ${program} not found`);
     }
 
-    // Check if student already exists
-    const existingStudent =
+    // find existing student based on program rules
+    const studentWhere =
       program !== 'CBC'
-        ? await this.studentsRepository.findOne({
-            where: {
-              firstName: firstName,
-              lastName: lastName,
-              dob: rest.dob,
-              school: rest.school,
-            },
-          })
-        : await this.studentsRepository.findOne({
-            where: {
-              firstName: firstName,
-              lastName: lastName,
-              dob: rest.dob,
-            },
-          });
+        ? {
+          firstName,
+          lastName,
+          dob: rest.dob,
+          school: rest.school,
+        }
+        : {
+          firstName,
+          lastName,
+          dob: rest.dob,
+        };
+
+    let student = await this.studentsRepository.findOne({ where: studentWhere });
 
     try {
-      let student = existingStudent;
+      // 1. If student does not exist, create new
 
-      // If student doesn't exist, create new student
       if (!student) {
         const newStudent = this.studentsRepository.create({
           ...rest,
@@ -68,16 +65,33 @@ export class StudentsService {
           lastName,
           yearJoined: year,
         });
+
         student = await this.studentsRepository.save(newStudent);
       } else {
-        // Update yearJoined if provided year is more recent
+        // Update yearJoined if new year is older
         if (student.yearJoined > year) {
-          await this.update(student.id, { year: year });
+          await this.studentsRepository.update(student.id, { yearJoined: year });
           student.yearJoined = year;
         }
       }
 
-      // Check for existing participation
+
+      // 2. Create grade for ASCG if provided
+
+      if (grades && program === 'ASCG') {
+        const currentGrade = await this.gradesService.findGrade(student, year);
+
+        if (!currentGrade) {
+          await this.gradesService.create({
+            ...grades,
+            year,
+            studentId: student.id,
+          });
+        }
+      }
+
+      // 3. Create participation record
+
       const existingParticipation = await this.participationRepository.findOne({
         where: {
           student: { id: student.id },
@@ -87,7 +101,6 @@ export class StudentsService {
         },
       });
 
-      // Create participation if it doesn't exist
       if (!existingParticipation) {
         await this.participationService.create({
           studentId: student.id,
@@ -98,31 +111,59 @@ export class StudentsService {
         });
       }
 
-      // Create grades if provided
-      if (grades && program === 'ASCG') {
-        const currentGrade = await this.gradesService.findGrade(student, year);
-        if (!currentGrade) {
-          await this.gradesService.create({
-            ...grades,
-            year,
-            studentId: student.id,
-          });
-        }
-      }
-
       return student;
     } catch (error) {
+
+      // 4. Handle Unique Constraint (23505)
+
       if (error.code === '23505') {
+        // Student already exists 
+        const fallbackStudent = await this.studentsRepository.findOne({
+          where: studentWhere,
+        });
+
+        if (!fallbackStudent) {
+          Logger.error(error);
+          throw new InternalServerErrorException(
+            `Unique constraint violation but student could not be retrieved`,
+          );
+        }
+
+        // Check participation again
+        const existingParticipation = await this.participationRepository.findOne({
+          where: {
+            student: { id: fallbackStudent.id },
+            program: { id: currentProgram.id },
+            year,
+            quarter,
+          },
+        });
+
+        if (!existingParticipation) {
+          await this.participationService.create({
+            studentId: fallbackStudent.id,
+            programId: currentProgram.id,
+            quarter,
+            year,
+            tag: createStudentDto.tag,
+          });
+
+          return fallbackStudent;
+        }
+
         throw new ConflictException(
           `Student with provided details already exists: ${firstName} ${lastName}`,
         );
       }
-      Logger.log(error);
+
+      Logger.error(error);
+
       throw new InternalServerErrorException(
         `An unexpected error occurred while processing student: ${firstName} ${lastName}`,
       );
     }
   }
+
 
   async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
     const results: Student[] = [];
