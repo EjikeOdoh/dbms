@@ -22,6 +22,7 @@ import {
   OmitType,
   PickType,
 } from '@nestjs/swagger';
+import { Term } from 'src/enums/term.enum';
 
 export class CreateStudentDto {
   @ApiProperty({
@@ -290,6 +291,22 @@ export class CreateStudentDto {
   year: number;
 
   @ApiProperty({
+    required: false,
+    example: 2025,
+  })
+  @IsInt()
+  academicYear: number;
+
+  @ApiProperty({
+    example: Term.First,
+    required: true,
+    enum: Term,
+  })
+  @IsEnum(Term)
+  @IsNotEmpty()
+  term: Term;
+
+  @ApiProperty({
     required: true,
     example: 2,
   })
@@ -338,7 +355,7 @@ export class CreateStudentResponseDto extends OmitType(CreateStudentDto, [
 
 export class UpdateStudentApiDto extends OmitType(CreateStudentResponseDto, [
   'id',
-]) {}
+]) { }
 
 export class PaginationMetaDto {
   @ApiProperty()
@@ -371,7 +388,7 @@ export class GetStudentsResponseDto extends PickType(CreateStudentResponseDto, [
   'school',
   'country',
   'yearJoined',
-]) {}
+]) { }
 
 export class GetAllStudentsResponseDto {
   @ApiProperty({ type: () => [GetStudentsResponseDto] })

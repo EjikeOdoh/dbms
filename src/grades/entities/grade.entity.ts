@@ -6,9 +6,10 @@ import {
   Unique,
 } from 'typeorm';
 import { Student } from '../../students/entities/student.entity';
+import { Term } from 'src/enums/term.enum';
 
 @Entity('grades')
-@Unique(['student', 'year'])
+@Unique(['student', 'year', 'term'])
 export class Grade {
   @PrimaryGeneratedColumn()
   id: number;
@@ -51,4 +52,7 @@ export class Grade {
 
   @Column({ type: 'int', nullable: false })
   year: number;
+
+  @Column({ type: 'enum', enum: Term, nullable: false })
+  term: Term;
 }

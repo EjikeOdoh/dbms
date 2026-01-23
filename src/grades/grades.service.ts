@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Grade } from './entities/grade.entity';
 import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
+import { Term } from 'src/enums/term.enum';
 
 @Injectable()
 export class GradesService {
@@ -71,11 +72,12 @@ export class GradesService {
       .getMany();
   }
 
-  async findGrade(student: Student, year: number) {
+  async findGrade(student: Student, year: number, term: Term) {
     return this.gradesRepository.findOne({
       where: {
         student: student,
         year: year,
+        term: term
       },
     });
   }

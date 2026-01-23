@@ -28,7 +28,7 @@ export class StudentsService {
   ) { }
 
   async create(createStudentDto: CreateStudentDto) {
-    const { grades, year, program, quarter, firstName, lastName, ...rest } = createStudentDto;
+    const { grades, year, program, quarter, firstName, lastName, term, ...rest } = createStudentDto;
 
     // program must exist
     const currentProgram = await this.programsService.findOne({
@@ -79,13 +79,19 @@ export class StudentsService {
       // 2. Create grade for ASCG if provided
 
       if (grades && program === 'ASCG') {
-        const currentGrade = await this.gradesService.findGrade(student, year);
+        const currentGrade = await this.gradesService.findGrade(student, createStudentDto.academicYear, term);
 
         if (!currentGrade) {
           await this.gradesService.create({
             ...grades,
-            year,
+            year: createStudentDto.academicYear,
+            term,
             studentId: student.id,
+          });
+        } else {
+          await this.gradesService.update(currentGrade.id, {
+            ...grades,
+            term
           });
         }
       }
@@ -294,6 +300,7 @@ export class StudentsService {
       ])
       .orderBy('student.firstName', 'ASC')
       .getManyAndCount();
+
 
     return {
       count: total,

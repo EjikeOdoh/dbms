@@ -73,14 +73,14 @@ export class UploadsService {
     const workbook = XLSX.readFile(filePath, { sheetStubs: true });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-  
+
     // Convert first
     let rows = XLSX.utils.sheet_to_json(sheet, {
       raw: false,
       dateNF: 'yyyy-mm-dd',
       defval: null
     });
-  
+
     // ---- IMPORTANT PART: Stop at real last row ----
     rows = rows.filter(row => {
       // keep row only if it has at least one non-null + non-empty value
@@ -88,10 +88,10 @@ export class UploadsService {
         val => val !== null && val !== undefined && val.toString().trim() !== ""
       );
     });
-  
+
     return rows;
   }
-  
+
 
   private deleteFile(filePath: string): void {
     fs.unlink(filePath, (err) => {
@@ -113,7 +113,7 @@ export class UploadsService {
     const firstName = record['FIRST NAME']?.toString().trim();
     const lastName = record['LAST NAME']?.toString().trim();
     const country = record['COUNTRY']?.toString().trim();
-  
+
     // ---- VALIDATION ----
     if (!firstName) {
       throw new Error(JSON.stringify(record));
@@ -157,6 +157,8 @@ export class UploadsService {
       country: record['COUNTRY'].toString().trim(),
       quarter: Number(data['quarter']),
       year: Number(data['year']),
+      academicYear: Number(record['ACADEMIC YEAR']),
+      term: record['TERM'].toString().trim().toLowerCase(),
       program: ProgramType[data['program']],
       grades: {
         english: record['ENGLISH'],

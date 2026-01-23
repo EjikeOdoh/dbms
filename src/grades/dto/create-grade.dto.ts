@@ -6,6 +6,7 @@ import {
   Length,
   IsNotEmpty,
 } from 'class-validator';
+import { Term } from 'src/enums/term.enum';
 
 export class GradeDto {
   @ApiPropertyOptional({
@@ -101,6 +102,11 @@ export class CreateGradeDto extends GradeDto {
   @IsInt()
   @IsOptional()
   year?: number;
+
+  @ApiProperty({ example: Term.First })
+  @IsString()
+  @IsOptional()
+  term?: Term;
 }
 
 export class CreateGradesResponseDto extends CreateGradeDto {
