@@ -6,6 +6,7 @@ import { ProgramType } from 'src/programs/entities/program.entity';
 import { StudentsService } from 'src/students/students.service';
 import { FilterDto } from 'src/participation/dto/filter.dto';
 import { ParticipationService } from 'src/participation/participation.service';
+import { error } from 'console';
 
 @Injectable()
 export class UploadsService {
@@ -16,11 +17,18 @@ export class UploadsService {
 
   async processFile(filePath: string, data) {
     let records: any[];
+    let errors = [];
+
     try {
       records = this.parseXLSX(filePath);
       const studentsData = records.map((record) =>
-        this.mapToCreateStudentDto(record, data),
+        this.mapToCreateStudentDto(record, data, errors),
       );
+
+      if (errors.length > 0) {
+        throw new Error(JSON.stringify({ errors }));
+      }
+
       await this.studentsService.createMany(studentsData);
       return { upload: true };
     } catch (error) {
@@ -108,7 +116,7 @@ export class UploadsService {
   }
 
   // Transforming the data function
-  private mapToCreateStudentDto(record: any, data): CreateStudentDto {
+  private mapToCreateStudentDto(record: any, data, errorArr = []): CreateStudentDto {
 
     const firstName = record['FIRST NAME']?.toString().trim();
     const lastName = record['LAST NAME']?.toString().trim();
@@ -116,16 +124,18 @@ export class UploadsService {
 
     // ---- VALIDATION ----
     if (!firstName) {
-      throw new Error(JSON.stringify(record));
+      console.log(record)
+      errorArr.push(record)
     }
     if (!lastName) {
-      throw new Error(JSON.stringify(record));
-
+      console.log(record)
+      errorArr.push(record)
     }
     if (!country) {
-      throw new Error(JSON.stringify(record));
-
+      console.log(record)
+      errorArr.push(record)
     }
+
 
     return {
       school: record['SCHOOL'],

@@ -53,6 +53,6 @@ export class Grade {
   @Column({ type: 'int', nullable: false })
   year: number;
 
-  @Column({ type: 'enum', enum: Term, nullable: false })
+  @Column({ type: 'enum', enum: Term, nullable: true })
   term: Term;
 }
