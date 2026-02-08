@@ -15,7 +15,7 @@ export class UploadsService {
     private participationService: ParticipationService,
   ) { }
 
-  async processFile(filePath: string, data) {
+  async processFile(filePath: string, data:any) {
     let records: any[];
     let errors = [];
 

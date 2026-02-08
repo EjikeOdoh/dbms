@@ -27,18 +27,171 @@ export class StudentsService {
     private participationService: ParticipationService,
   ) { }
 
-  async create(createStudentDto: CreateStudentDto) {
-    const { grades, year, program, quarter, firstName, lastName, term, ...rest } = createStudentDto;
+  // async create(createStudentDto: CreateStudentDto) {
+  //   const { grades, year, program, quarter, firstName, lastName, term, ...rest } = createStudentDto;
 
-    // program must exist
+  //   // program must exist
+  //   const currentProgram = await this.programsService.findOne({
+  //     where: { program },
+  //   });
+  //   if (!currentProgram) {
+  //     throw new NotFoundException(`Program with name ${program} not found`);
+  //   }
+
+  //   // find existing student based on program rules
+  //   const studentWhere =
+  //     program !== 'CBC'
+  //       ? {
+  //         firstName,
+  //         lastName,
+  //         dob: rest.dob,
+  //         school: rest.school,
+  //       }
+  //       : {
+  //         firstName,
+  //         lastName,
+  //         dob: rest.dob,
+  //       };
+
+  //   let student = await this.studentsRepository.findOne({ where: studentWhere });
+
+  //   try {
+  //     // 1. If student does not exist, create new
+
+  //     if (!student) {
+  //       const newStudent = this.studentsRepository.create({
+  //         ...rest,
+  //         firstName,
+  //         lastName,
+  //         yearJoined: year,
+  //       });
+
+  //       student = await this.studentsRepository.save(newStudent);
+  //     } else {
+  //       // Update yearJoined if new year is older
+  //       if (student.yearJoined > year) {
+  //         await this.studentsRepository.update(student.id, { yearJoined: year });
+  //         student.yearJoined = year;
+  //       }
+  //     }
+
+
+  //     // 2. Create grade for ASCG if provided
+
+  //     if (grades && program === 'ASCG') {
+  //       const currentGrade = await this.gradesService.findGrade(student, createStudentDto.academicYear, term);
+
+  //       if (!currentGrade) {
+  //         await this.gradesService.create({
+  //           ...grades,
+  //           year: createStudentDto.academicYear,
+  //           term,
+  //           studentId: student.id,
+  //         });
+  //       } else {
+  //         await this.gradesService.update(currentGrade.id, {
+  //           ...grades,
+  //           term
+  //         });
+  //       }
+  //     }
+
+  //     // 3. Create participation record
+
+  //     const existingParticipation = await this.participationRepository.findOne({
+  //       where: {
+  //         student: { id: student.id },
+  //         program: { id: currentProgram.id },
+  //         year,
+  //         quarter,
+  //       },
+  //     });
+
+  //     if (!existingParticipation) {
+  //       await this.participationService.create({
+  //         studentId: student.id,
+  //         programId: currentProgram.id,
+  //         quarter,
+  //         year,
+  //         tag: createStudentDto.tag,
+  //       });
+  //     }
+
+  //     return student;
+  //   } catch (error) {
+
+  //     // 4. Handle Unique Constraint (23505)
+
+  //     if (error.code === '23505') {
+  //       // Student already exists 
+  //       const fallbackStudent = await this.studentsRepository.findOne({
+  //         where: studentWhere,
+  //       });
+
+  //       if (!fallbackStudent) {
+  //         Logger.error(error);
+  //         throw new InternalServerErrorException(
+  //           `Unique constraint violation but student could not be retrieved`,
+  //         );
+  //       }
+
+  //       // Check participation again
+  //       const existingParticipation = await this.participationRepository.findOne({
+  //         where: {
+  //           student: { id: fallbackStudent.id },
+  //           program: { id: currentProgram.id },
+  //           year,
+  //           quarter,
+  //         },
+  //       });
+
+  //       if (!existingParticipation) {
+  //         await this.participationService.create({
+  //           studentId: fallbackStudent.id,
+  //           programId: currentProgram.id,
+  //           quarter,
+  //           year,
+  //           tag: createStudentDto.tag,
+  //         });
+
+  //         return fallbackStudent;
+  //       }
+
+  //       throw new ConflictException(
+  //         `Student with provided details already exists: ${firstName} ${lastName}`,
+  //       );
+  //     }
+
+  //     Logger.error(error);
+
+  //     throw new InternalServerErrorException(
+  //       `An unexpected error occurred while processing student: ${firstName} ${lastName}`,
+  //     );
+  //   }
+  // }
+
+  async create(createStudentDto: CreateStudentDto) {
+    const {
+      grades,
+      year,
+      program,
+      quarter,
+      firstName,
+      lastName,
+      term,
+      ...rest
+    } = createStudentDto;
+
+    // 1. Program must exist (hard stop)
     const currentProgram = await this.programsService.findOne({
       where: { program },
     });
+
     if (!currentProgram) {
       throw new NotFoundException(`Program with name ${program} not found`);
     }
 
-    // find existing student based on program rules
+    // 2. Find or create student (hard stop)
     const studentWhere =
       program !== 'CBC'
         ? {
@@ -55,144 +208,167 @@ export class StudentsService {
 
     let student = await this.studentsRepository.findOne({ where: studentWhere });
 
-    try {
-      // 1. If student does not exist, create new
-
-      if (!student) {
-        const newStudent = this.studentsRepository.create({
-          ...rest,
-          firstName,
-          lastName,
-          yearJoined: year,
-        });
-
-        student = await this.studentsRepository.save(newStudent);
-      } else {
-        // Update yearJoined if new year is older
-        if (student.yearJoined > year) {
-          await this.studentsRepository.update(student.id, { yearJoined: year });
-          student.yearJoined = year;
-        }
-      }
-
-
-      // 2. Create grade for ASCG if provided
-
-      if (grades && program === 'ASCG') {
-        const currentGrade = await this.gradesService.findGrade(student, createStudentDto.academicYear, term);
-
-        if (!currentGrade) {
-          await this.gradesService.create({
-            ...grades,
-            year: createStudentDto.academicYear,
-            term,
-            studentId: student.id,
-          });
-        } else {
-          await this.gradesService.update(currentGrade.id, {
-            ...grades,
-            term
-          });
-        }
-      }
-
-      // 3. Create participation record
-
-      const existingParticipation = await this.participationRepository.findOne({
-        where: {
-          student: { id: student.id },
-          program: { id: currentProgram.id },
-          year,
-          quarter,
-        },
+    if (!student) {
+      const newStudent = this.studentsRepository.create({
+        ...rest,
+        firstName,
+        lastName,
+        yearJoined: year,
       });
 
-      if (!existingParticipation) {
-        await this.participationService.create({
-          studentId: student.id,
-          programId: currentProgram.id,
-          quarter,
-          year,
-          tag: createStudentDto.tag,
-        });
-      }
+      student = await this.studentsRepository.save(newStudent);
+    } else if (student.yearJoined > year) {
+      await this.studentsRepository.update(student.id, { yearJoined: year });
+      student.yearJoined = year;
+    }
 
-      return student;
-    } catch (error) {
+    // 3. Prepare soft tasks (grade + participation)
+    const tasks: Promise<any>[] = [];
 
-      // 4. Handle Unique Constraint (23505)
+    // Grade task (soft)
+    if (grades && program === 'ASCG') {
+      tasks.push(
+        (async () => {
+          const academicYear = Number(createStudentDto.academicYear);
 
-      if (error.code === '23505') {
-        // Student already exists 
-        const fallbackStudent = await this.studentsRepository.findOne({
-          where: studentWhere,
-        });
+          if (!Number.isInteger(academicYear)) {
+            throw new Error(`Invalid academicYear: ${createStudentDto.academicYear}`);
+          }
 
-        if (!fallbackStudent) {
-          Logger.error(error);
-          throw new InternalServerErrorException(
-            `Unique constraint violation but student could not be retrieved`,
+          const currentGrade = await this.gradesService.findGrade(
+            student,
+            academicYear,
+            term,
           );
-        }
 
-        // Check participation again
-        const existingParticipation = await this.participationRepository.findOne({
-          where: {
-            student: { id: fallbackStudent.id },
-            program: { id: currentProgram.id },
-            year,
-            quarter,
-          },
-        });
+          if (!currentGrade) {
+            await this.gradesService.create({
+              ...grades,
+              year: academicYear,
+              term,
+              studentId: student.id,
+            });
+          } else {
+            await this.gradesService.update(currentGrade.id, {
+              ...grades,
+              term,
+            });
+          }
+        })(),
+      );
+    }
+
+    // Participation task (soft)
+    tasks.push(
+      (async () => {
+        const existingParticipation =
+          await this.participationRepository.findOne({
+            where: {
+              student: { id: student.id },
+              program: { id: currentProgram.id },
+              year,
+              quarter,
+            },
+          });
 
         if (!existingParticipation) {
           await this.participationService.create({
-            studentId: fallbackStudent.id,
+            studentId: student.id,
             programId: currentProgram.id,
             quarter,
             year,
             tag: createStudentDto.tag,
           });
-
-          return fallbackStudent;
         }
-
-        throw new ConflictException(
-          `Student with provided details already exists: ${firstName} ${lastName}`,
-        );
-      }
-
-      Logger.error(error);
-
-      throw new InternalServerErrorException(
-        `An unexpected error occurred while processing student: ${firstName} ${lastName}`,
-      );
-    }
-  }
-
-
-  async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
-    const results: Student[] = [];
-    const errors: any[] = [];
-
-    await Promise.all(
-      createStudentDtos.map(async (studentDto) => {
-        try {
-          const student = await this.create(studentDto);
-          results.push(student);
-        } catch (error) {
-          errors.push({
-            error: error.message,
-          });
-        }
-      }),
+      })(),
     );
 
-    if (errors.length > 0) {
-      console.error('Some students could not be created:', errors);
-    }
-    return results;
+    // 4. Execute soft tasks in parallel
+    const results = await Promise.allSettled(tasks);
+
+    // 5. Log failures without breaking flow
+    results.forEach((result) => {
+      if (result.status === 'rejected') {
+        Logger.warn(result.reason?.message || result.reason);
+      }
+    });
+
+    return student;
   }
+
+
+
+  // async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
+  //   const results: Student[] = [];
+  //   const errors: any[] = [];
+
+  //   await Promise.all(
+  //     createStudentDtos.map(async (studentDto) => {
+  //       try {
+  //         const student = await this.create(studentDto);
+  //         results.push(student);
+  //       } catch (error) {
+  //         errors.push({
+  //           error: error.message,
+  //         });
+  //       }
+  //     }),
+  //   );
+
+  //   if (errors.length > 0) {
+  //     console.error('Some students could not be created:', errors);
+  //   }
+  //   return results;
+  // }
+
+  async createMany(createStudentDtos: CreateStudentDto[]) {
+    const results: {
+      index: number;
+      student?: Student;
+      success: boolean;
+      warnings?: string[];
+      error?: string;
+    }[] = [];
+
+    for (let i = 0; i < createStudentDtos.length; i++) {
+      const dto = createStudentDtos[i];
+
+      try {
+        const result = await this.create(dto);
+
+        // support both return styles:
+        // - student
+        // - { student, warnings }
+        if ('student' in result) {
+          results.push({
+            index: i + 1, // CSV row number (1-based)
+            student: result,
+            success: true,
+          });
+        } else {
+          results.push({
+            index: i + 1,
+            student: result,
+            success: true,
+          });
+        }
+      } catch (error) {
+        results.push({
+          index: i + 1,
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+
+    return {
+      total: createStudentDtos.length,
+      successCount: results.filter(r => r.success).length,
+      failureCount: results.filter(r => !r.success).length,
+      results,
+    };
+  }
+
 
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 20 } = paginationDto;

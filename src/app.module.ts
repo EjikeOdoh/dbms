@@ -29,7 +29,7 @@ import { TagModule } from './tag/tag.module';
         type: 'postgres',
         url: configService.get<string>('NEON_DB'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false,
         // logging: true,
         ssl: {
           rejectUnauthorized: false,
