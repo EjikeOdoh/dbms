@@ -7,17 +7,22 @@ import {
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Grade } from './entities/grade.entity';
-import { Repository } from 'typeorm';
+import { Grade, GradeAverage, AcademicProgress } from './entities/grade.entity';
+import { DataSource, Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Term } from 'src/enums/term.enum';
+import { calculateTermAverage } from 'src/utils/academicProgress';
 
 @Injectable()
 export class GradesService {
+
   constructor(
     @InjectRepository(Grade) private gradesRepository: Repository<Grade>,
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
-  ) {}
+    @InjectRepository(AcademicProgress) private progressRepository: Repository<AcademicProgress>,
+    private dataSource: DataSource
+  ) { }
+
   async create(createGradeDto: CreateGradeDto) {
     const { studentId, ...rest } = createGradeDto;
     const student = await this.studentsRepository.findOne({
@@ -26,24 +31,38 @@ export class GradesService {
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
-    const grade = this.gradesRepository.create({
-      ...rest,
-      student,
-    });
 
     try {
-      return await this.gradesRepository.save(grade);
+      return await this.dataSource.transaction(async (manager) => {
+        const gradeRepo = manager.getRepository(Grade);
+        const averageRepo = manager.getRepository(GradeAverage);
+        const progressRepo = manager.getRepository(AcademicProgress);
+
+        const grade = gradeRepo.create({ ...rest, student });
+        const saved = await gradeRepo.save(grade);
+
+        // Calculate average
+        const avg = calculateTermAverage(saved)
+        await averageRepo.save({
+          studentId,
+          grade: saved,
+          gradeId: saved.id,
+          year: saved.year,
+          term: saved.term,
+          average: avg,
+        });
+
+        // Recompute academic progress
+        await this.recomputeAcademicProgress(studentId, saved.year, averageRepo, progressRepo);
+
+        return saved;
+      });
     } catch (error) {
-      console.log(error);
       if (error.code === '23505') {
-        throw new ConflictException(
-          'A grade for this student and year already exists.',
-        );
+        throw new ConflictException('A grade for this student and year already exists.');
       }
-      console.log('Grade Error:', error);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred while creating the grade.',
-      );
+      console.log('Grade creation error:', error);
+      throw new InternalServerErrorException('Error creating grade.');
     }
   }
 
@@ -82,13 +101,101 @@ export class GradesService {
     });
   }
 
-  async update(id: number, updateGradeDto: UpdateGradeDto) {
-    await this.gradesRepository.update(id, updateGradeDto);
-    return this.gradesRepository.findOne({ where: { id } });
+  async getProgress(year: number) {
+    return this.progressRepository.find(
+      { where: { year } }
+    )
   }
 
+  async update(id: number, dto: UpdateGradeDto) {
+    return await this.dataSource.transaction(async (manager) => {
+      const gradeRepo = manager.getRepository(Grade);
+      const averageRepo = manager.getRepository(GradeAverage);
+      const progressRepo = manager.getRepository(AcademicProgress);
+
+      const grade = await gradeRepo.findOne({ where: { id }, relations: ['student'] });
+      if (!grade) throw new NotFoundException('Grade not found');
+
+      Object.assign(grade, dto);
+      const updated = await gradeRepo.save(grade);
+
+      // Update average
+      const avg = calculateTermAverage(updated);
+      const existingAvg = await averageRepo.findOne({ where: { gradeId: updated.id } });
+      if (existingAvg) {
+        existingAvg.average = avg;
+        await averageRepo.save(existingAvg);
+      } else {
+        await averageRepo.save({
+          studentId: updated.student.id,
+          grade: updated,
+          gradeId: updated.id,
+          year: updated.year,
+          term: updated.term,
+          average: avg,
+        });
+      }
+
+      // Recompute academic progress
+      await this.recomputeAcademicProgress(updated.student.id, updated.year, averageRepo, progressRepo);
+
+      return updated;
+    });
+  }
+
+
   async remove(id: number) {
-    await this.gradesRepository.delete(id);
-    return { deleted: true };
+    return await this.dataSource.transaction(async (manager) => {
+      const gradeRepo = manager.getRepository(Grade);
+      const averageRepo = manager.getRepository(GradeAverage);
+      const progressRepo = manager.getRepository(AcademicProgress);
+
+      const grade = await gradeRepo.findOne({ where: { id }, relations: ['student'] });
+      if (!grade) throw new NotFoundException('Grade not found');
+
+      const { student, year } = grade;
+
+      // Delete derived average
+      await averageRepo.delete({ gradeId: id });
+
+      // Delete grade itself
+      await gradeRepo.delete({ id });
+
+      // Recompute academic progress
+      await this.recomputeAcademicProgress(student.id, year, averageRepo, progressRepo);
+
+      return { deleted: true };
+    });
+  }
+
+
+  private async recomputeAcademicProgress(
+    studentId: number,
+    year: number,
+    averageRepo: Repository<GradeAverage>,
+    progressRepo: Repository<AcademicProgress>,
+  ) {
+    const averages = await averageRepo.find({ where: { studentId, year }, order: { term: 'ASC' } });
+
+    if (averages.length <= 1) {
+      await progressRepo.delete({ studentId, year });
+      return;
+    }
+
+    const first = averages.find(a => a.term === Term.First)?.average ?? null;
+    const second = averages.find(a => a.term === Term.Second)?.average ?? null;
+    const third = averages.find(a => a.term === Term.Third)?.average ?? null;
+
+    const madeProgress = first !== null && averages[averages.length - 1].average > first;
+
+    await progressRepo.save({
+      studentId,
+      year,
+      numberOfTerms: averages.length,
+      firstTermAvg: first,
+      secondTermAvg: second,
+      thirdTermAvg: third,
+      madeProgress,
+    });
   }
 }

@@ -56,3 +56,58 @@ export class Grade {
   @Column({ type: 'enum', enum: Term, nullable: true })
   term: Term;
 }
+
+
+@Entity('grade_averages')
+@Unique(['studentId','gradeId', 'year', 'term'])
+export class GradeAverage {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int' })
+  studentId: number;
+
+  @ManyToOne(() => Grade, { onDelete: 'CASCADE' })
+  grade: Grade;
+
+  @Column({ type: 'int' })
+  gradeId: number;
+
+  @Column({ type: 'int' })
+  year: number;
+
+  @Column({ type: 'enum', enum: Term })
+  term: Term;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2 })
+  average: number;
+}
+
+
+@Entity('academic_progress')
+@Unique(['studentId', 'year'])
+export class AcademicProgress {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int' })
+  studentId: number;
+
+  @Column({ type: 'int' })
+  year: number;
+
+  @Column({ type: 'int' })
+  numberOfTerms: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  firstTermAvg: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  secondTermAvg: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  thirdTermAvg: number;
+
+  @Column({ type: 'boolean', default: false })
+  madeProgress: boolean;
+}

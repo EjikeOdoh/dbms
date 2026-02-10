@@ -15,7 +15,7 @@ export class UploadsService {
     private participationService: ParticipationService,
   ) { }
 
-  async processFile(filePath: string, data:any) {
+  async processFile(filePath: string, data: any) {
     let records: any[];
     let errors = [];
 
@@ -167,8 +167,10 @@ export class UploadsService {
       country: record['COUNTRY'].toString().trim(),
       quarter: Number(data['quarter']),
       year: Number(data['year']),
-      academicYear: Number(record['ACADEMIC YEAR']),
-      term: record['TERM'].toString().trim().toLowerCase(),
+      academicYear: ProgramType[data['program']] === 'CBC' ? undefined : Number(record['ACADEMIC YEAR']),
+      term: ['CBC', 'DSC', 'SSC'].includes(ProgramType[data['program']])
+        ? undefined
+        : record['TERM'].toString().trim().toLowerCase(),
       program: ProgramType[data['program']],
       grades: {
         english: record['ENGLISH'],

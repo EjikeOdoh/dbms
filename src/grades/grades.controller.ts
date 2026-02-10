@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { GradesService } from './grades.service';
 import {
@@ -59,6 +60,12 @@ export class GradesController {
   })
   async findAll() {
     return this.gradesService.findAll();
+  }
+
+
+  @Get('progress')
+  async getProgress(@Query('year') year: number) {
+    return await this.gradesService.getProgress(year)
   }
 
   @Get(':id')
