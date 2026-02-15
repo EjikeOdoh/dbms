@@ -108,6 +108,9 @@ export class AcademicProgress {
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   thirdTermAvg: number;
 
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
+  avg: number
+
   @Column({ type: 'boolean', default: false })
   madeProgress: boolean;
 }

@@ -23,9 +23,9 @@ export class FilterDto {
 
 export class FilterByCountryDto {
   country?: string
-  program?:string
+  program?: string
   year?: number
-  
+
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -36,6 +36,22 @@ export class FilterByCountryDto {
   @IsInt()
   @Min(1)
   @Max(20)
+  @Type(() => Number)
+  limit?: number = 10;
+}
+
+export class ProgressFilterDto {
+  year?: number
+  
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  page?: number = 1;
+
+  @IsOptional()
+  @IsInt()
+  @Min(10)
   @Type(() => Number)
   limit?: number = 10;
 }
@@ -72,7 +88,7 @@ export type DBQuery = {
 }
 
 export type QuarterGroup = {
-  quarter: string;            
+  quarter: string;
   [program: string]: number | string;
 };
 

@@ -6,12 +6,13 @@ import { Participation } from './entities/participation.entity';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { TargetModule } from 'src/target/target.module';
+import { AcademicProgress } from 'src/grades/entities/grade.entity';
 
 @Module({
   controllers: [ParticipationController],
   providers: [ParticipationService],
   imports: [
-    TypeOrmModule.forFeature([Participation, Student, Program]),
+    TypeOrmModule.forFeature([Participation, Student, Program, AcademicProgress]),
     TargetModule,
   ],
   exports: [ParticipationService],

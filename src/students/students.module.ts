@@ -6,12 +6,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GradesModule } from 'src/grades/grades.module';
 import { Participation } from 'src/participation/entities/participation.entity';
 import { Program } from 'src/programs/entities/program.entity';
-import { Grade } from 'src/grades/entities/grade.entity';
+import { AcademicProgress, Grade } from 'src/grades/entities/grade.entity';
 import { ParticipationModule } from 'src/participation/participation.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Student, Participation, Program, Grade]),
+    TypeOrmModule.forFeature([Student, Participation, Program, Grade, AcademicProgress]),
     GradesModule,
     ParticipationModule,
   ],

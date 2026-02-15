@@ -26,6 +26,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
+import { ProgressFilterDto } from 'src/participation/dto/filter.dto';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('grades')
@@ -64,8 +65,8 @@ export class GradesController {
 
 
   @Get('progress')
-  async getProgress(@Query('year') year: number) {
-    return await this.gradesService.getProgress(year)
+  async getProgress(@Query() filter: ProgressFilterDto) {
+    return await this.gradesService.getProgress(filter);
   }
 
   @Get(':id')

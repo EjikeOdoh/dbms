@@ -13,6 +13,7 @@ import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
 import { AgeRangeSummary, DBQuery, FilterByCountryDto, FilterDto, QuarterGroup, QuarterlyProgramBreakdown } from './dto/filter.dto';
 import { TargetService } from 'src/target/target.service';
+import { AcademicProgress } from 'src/grades/entities/grade.entity';
 
 @Injectable()
 export class ParticipationService {
@@ -21,6 +22,7 @@ export class ParticipationService {
     private participationRepository: Repository<Participation>,
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(Program) private programsRepository: Repository<Program>,
+    @InjectRepository(AcademicProgress) private progressRepository: Repository<AcademicProgress>,
     private targetService: TargetService,
   ) { }
 
@@ -59,6 +61,7 @@ export class ParticipationService {
 
   async getStats(year?: number) {
     let target: number;
+    let progress: number = 0
 
     // Get unique count
     let uniqueCount = await this.studentsRepository.count();
@@ -74,6 +77,19 @@ export class ParticipationService {
         where: { yearJoined: year },
       });
       target = await this.targetService.findTargetByYear(year);
+
+      // 
+      const [data, count] = await this.progressRepository.createQueryBuilder("academic_progress")
+        .where("academic_progress.year = :year", { year }).getManyAndCount()
+
+      if (count > 0) {
+        const progressCount = data.filter(p => {
+          return p.madeProgress === true
+        }).length
+
+        progress = Math.round((progressCount / count) * 100)
+
+      }
     }
 
     // Get count by country
@@ -167,6 +183,7 @@ export class ParticipationService {
       highestYearlyCount,
       target: target ?? 0,
       years,
+      progress
     };
   }
 
@@ -320,24 +337,24 @@ export class ParticipationService {
     const page = Number(filterByProgramDto?.page ?? 1);
     const limit = Number(filterByProgramDto?.limit ?? 10);
     const skip = (page - 1) * limit;
-  
+
     const whereParts: string[] = [];
     const params: any[] = [];
-  
+
     // Filter by program name (case-insensitive search on enum)
     if (filterByProgramDto?.program) {
       params.push(`%${filterByProgramDto.program.toLowerCase()}%`);
       // Cast enum to text before applying LOWER() and LIKE
       whereParts.push(`LOWER(pr.program::text) LIKE $${params.length}`);
     }
-  
+
     if (filterByProgramDto?.year != null) {
       params.push(filterByProgramDto.year);
       whereParts.push(`p.year = $${params.length}`);
     }
-  
+
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
-  
+
     // 1. Get paginated IDs
     const idSql = `
       SELECT p.id
@@ -348,14 +365,14 @@ export class ParticipationService {
       ORDER BY p.year DESC, p.quarter DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
     `;
-  
+
     const idRows: Array<{ id: number }> = await this.participationRepository.query(
       idSql,
       [...params, limit, skip],
     );
-  
+
     const ids = idRows.map(r => r.id);
-  
+
     // 2. Count total
     const countSql = `
       SELECT COUNT(*)::int AS count
@@ -363,10 +380,10 @@ export class ParticipationService {
       LEFT JOIN programs pr ON pr.id = p."programId"
       ${whereSql}
     `;
-  
+
     const [countRow] = await this.participationRepository.query(countSql, params);
     const total = countRow?.count ?? 0;
-  
+
     if (ids.length === 0) {
       return {
         data: [],
@@ -382,7 +399,7 @@ export class ParticipationService {
         },
       };
     }
-  
+
     // 3. Final data – also cast enum to text for output (optional but clean)
     const dataSql = `
       SELECT
@@ -401,9 +418,9 @@ export class ParticipationService {
       WHERE p.id = ANY($1)
       ORDER BY p.year DESC, p.quarter DESC, s."firstName" ASC
     `;
-  
+
     const data = await this.participationRepository.query(dataSql, [ids]);
-  
+
     return {
       data,
       meta: {

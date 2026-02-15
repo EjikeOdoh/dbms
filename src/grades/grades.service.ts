@@ -12,6 +12,7 @@ import { DataSource, Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Term } from 'src/enums/term.enum';
 import { calculateTermAverage } from 'src/utils/academicProgress';
+import { ProgressFilterDto } from 'src/participation/dto/filter.dto';
 
 @Injectable()
 export class GradesService {
@@ -101,10 +102,51 @@ export class GradesService {
     });
   }
 
-  async getProgress(year: number) {
-    return this.progressRepository.find(
-      { where: { year } }
-    )
+  async getProgress(filter: ProgressFilterDto) {
+
+    const page = Number(filter?.page ?? 1);
+    const limit = Number(filter?.limit ?? 10);
+    const skip = (page - 1) * limit;
+
+    const query = await this.progressRepository
+      .createQueryBuilder('progress')
+      .leftJoinAndSelect('students', 'student', 'student.id = progress.studentId')
+      .where('progress.year = :year', { year: filter.year })
+      .select([
+        'progress.studentId AS "studentId"',
+        'progress.year AS year',
+        'progress.numberOfTerms AS "numberOfTerms"',
+        'progress.firstTermAvg AS "firstTermAvg"',
+        'progress.secondTermAvg AS "secondTermAvg"',
+        'progress.thirdTermAvg AS "thirdTermAvg"',
+        'progress.madeProgress AS "madeProgress"',
+        'student.firstName AS "firstName"',
+        'student.lastName AS "lastName"',
+        'student.school AS "school"',
+      ])
+      .orderBy('progress.studentId', 'ASC')
+      .skip(skip)
+      .take(limit)
+
+
+    const [data, total] = await Promise.all([
+      query.getRawMany(),
+      query.getCount(),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPreviousPage: page > 1,
+        nextPage: page * limit < total ? page + 1 : null,
+        prevPage: page > 1 ? page - 1 : null,
+      },
+    };
   }
 
   async update(id: number, dto: UpdateGradeDto) {
@@ -143,7 +185,6 @@ export class GradesService {
     });
   }
 
-
   async remove(id: number) {
     return await this.dataSource.transaction(async (manager) => {
       const gradeRepo = manager.getRepository(Grade);
@@ -168,7 +209,6 @@ export class GradesService {
     });
   }
 
-
   private async recomputeAcademicProgress(
     studentId: number,
     year: number,
@@ -186,16 +226,32 @@ export class GradesService {
     const second = averages.find(a => a.term === Term.Second)?.average ?? null;
     const third = averages.find(a => a.term === Term.Third)?.average ?? null;
 
-    const madeProgress = first !== null && averages[averages.length - 1].average > first;
+    const madeProgress = first !== null && averages[averages.length - 1].average >= first;
 
-    await progressRepo.save({
-      studentId,
-      year,
-      numberOfTerms: averages.length,
-      firstTermAvg: first,
-      secondTermAvg: second,
-      thirdTermAvg: third,
-      madeProgress,
-    });
+    const avg = averages.reduce((x,y)=> {
+      return x+y.average
+    }, 0) / averages.length;
+
+    const currentProgress = await progressRepo.findOne({ where: { studentId, year } });
+    if (currentProgress) {
+      currentProgress.numberOfTerms = averages.length;
+      currentProgress.firstTermAvg = first;
+      currentProgress.secondTermAvg = second;
+      currentProgress.thirdTermAvg = third;
+      currentProgress.madeProgress = madeProgress;
+      await progressRepo.save(currentProgress);
+    } else {
+
+      await progressRepo.save({
+        studentId,
+        year,
+        numberOfTerms: averages.length,
+        firstTermAvg: first,
+        secondTermAvg: second,
+        thirdTermAvg: third,
+        avg,
+        madeProgress,
+      });
+    }
   }
 }
