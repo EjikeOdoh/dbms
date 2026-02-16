@@ -105,6 +105,7 @@ export class StudentsService {
               year: academicYear,
               term,
               studentId: student.id,
+              class: createStudentDto.currentClass
             });
           } else {
             await this.gradesService.update(currentGrade.id, {

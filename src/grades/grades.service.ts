@@ -226,7 +226,7 @@ export class GradesService {
     const second = averages.find(a => a.term === Term.Second)?.average ?? null;
     const third = averages.find(a => a.term === Term.Third)?.average ?? null;
 
-    const madeProgress = first !== null && averages[averages.length - 1].average >= first;
+    const madeProgress = averages[averages.length - 1].average >= averages[0].average;
 
     const avg = averages.reduce((x,y)=> {
       return x+y.average

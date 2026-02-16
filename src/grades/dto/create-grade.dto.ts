@@ -107,6 +107,13 @@ export class CreateGradeDto extends GradeDto {
   @IsString()
   @IsOptional()
   term?: Term;
+
+  @ApiPropertyOptional({
+    example: 'SS1',
+  })
+  @IsString()
+  @IsOptional()
+  class?: string;
 }
 
 export class CreateGradesResponseDto extends CreateGradeDto {

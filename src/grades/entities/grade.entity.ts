@@ -53,6 +53,9 @@ export class Grade {
   @Column({ type: 'int', nullable: false })
   year: number;
 
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  class: string;
+
   @Column({ type: 'enum', enum: Term, nullable: true })
   term: Term;
 }
