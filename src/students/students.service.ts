@@ -320,6 +320,7 @@ export class StudentsService {
   }
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {
+    Logger.log(updateStudentDto)
     try {
       await this.studentsRepository.update(id, updateStudentDto);
       return this.studentsRepository.findOne({ where: { id } });

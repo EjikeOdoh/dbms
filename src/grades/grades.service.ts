@@ -102,19 +102,72 @@ export class GradesService {
     });
   }
 
-  async getProgress(filter: ProgressFilterDto) {
+  // async getProgress(filter: ProgressFilterDto) {
 
+  //   const page = Number(filter?.page ?? 1);
+  //   const limit = Number(filter?.limit ?? 10);
+  //   const skip = (page - 1) * limit;
+
+  //   const query = await this.progressRepository
+  //     .createQueryBuilder('progress')
+  //     .leftJoinAndSelect('students', 'student', 'student.id = progress.studentId')
+  //     .where('progress.year = :year', { year: filter.year })
+  //     .select([
+  //       'progress.studentId AS "studentId"',
+  //       'progress.year AS year',
+  //       'progress.numberOfTerms AS "numberOfTerms"',
+  //       'progress.firstTermAvg AS "firstTermAvg"',
+  //       'progress.secondTermAvg AS "secondTermAvg"',
+  //       'progress.thirdTermAvg AS "thirdTermAvg"',
+  //       'progress.madeProgress AS "madeProgress"',
+  //       'student.firstName AS "firstName"',
+  //       'student.lastName AS "lastName"',
+  //       'student.school AS "school"',
+  //     ])
+  //     .orderBy('progress.studentId', 'ASC')
+  //     .skip(skip)
+  //     .take(limit)
+
+
+  //   const [data, total] = await Promise.all([
+  //     query.getRawMany(),
+  //     query.getCount(),
+  //   ]);
+
+  //   return {
+  //     data,
+  //     meta: {
+  //       total,
+  //       page,
+  //       limit,
+  //       totalPages: Math.ceil(total / limit),
+  //       hasNextPage: page * limit < total,
+  //       hasPreviousPage: page > 1,
+  //       nextPage: page * limit < total ? page + 1 : null,
+  //       prevPage: page > 1 ? page - 1 : null,
+  //     },
+  //   };
+  // }
+
+  async getProgress(filter: ProgressFilterDto) {
     const page = Number(filter?.page ?? 1);
     const limit = Number(filter?.limit ?? 10);
     const skip = (page - 1) * limit;
 
-    const query = await this.progressRepository
+    const baseQuery = this.progressRepository
       .createQueryBuilder('progress')
-      .leftJoinAndSelect('students', 'student', 'student.id = progress.studentId')
-      .where('progress.year = :year', { year: filter.year })
+      .leftJoin('students', 'student', 'student.id = progress.studentId')
+      .where('progress.year = :year', { year: filter.year });
+
+    // ✅ Clone BEFORE counting
+    const total = await baseQuery.clone().getCount();
+
+    // ✅ Apply pagination on a fresh clone
+    const data = await baseQuery
+      .clone()
       .select([
         'progress.studentId AS "studentId"',
-        'progress.year AS year',
+        'progress.year AS "year"',
         'progress.numberOfTerms AS "numberOfTerms"',
         'progress.firstTermAvg AS "firstTermAvg"',
         'progress.secondTermAvg AS "secondTermAvg"',
@@ -125,14 +178,9 @@ export class GradesService {
         'student.school AS "school"',
       ])
       .orderBy('progress.studentId', 'ASC')
-      .skip(skip)
-      .take(limit)
-
-
-    const [data, total] = await Promise.all([
-      query.getRawMany(),
-      query.getCount(),
-    ]);
+      .offset(skip)   // use offset for Postgres
+      .limit(limit)   // use limit for Postgres
+      .getRawMany();
 
     return {
       data,
@@ -228,8 +276,8 @@ export class GradesService {
 
     const madeProgress = averages[averages.length - 1].average >= averages[0].average;
 
-    const avg = averages.reduce((x,y)=> {
-      return x+y.average
+    const avg = averages.reduce((x, y) => {
+      return x + y.average
     }, 0) / averages.length;
 
     const currentProgress = await progressRepo.findOne({ where: { studentId, year } });
