@@ -102,53 +102,6 @@ export class GradesService {
     });
   }
 
-  // async getProgress(filter: ProgressFilterDto) {
-
-  //   const page = Number(filter?.page ?? 1);
-  //   const limit = Number(filter?.limit ?? 10);
-  //   const skip = (page - 1) * limit;
-
-  //   const query = await this.progressRepository
-  //     .createQueryBuilder('progress')
-  //     .leftJoinAndSelect('students', 'student', 'student.id = progress.studentId')
-  //     .where('progress.year = :year', { year: filter.year })
-  //     .select([
-  //       'progress.studentId AS "studentId"',
-  //       'progress.year AS year',
-  //       'progress.numberOfTerms AS "numberOfTerms"',
-  //       'progress.firstTermAvg AS "firstTermAvg"',
-  //       'progress.secondTermAvg AS "secondTermAvg"',
-  //       'progress.thirdTermAvg AS "thirdTermAvg"',
-  //       'progress.madeProgress AS "madeProgress"',
-  //       'student.firstName AS "firstName"',
-  //       'student.lastName AS "lastName"',
-  //       'student.school AS "school"',
-  //     ])
-  //     .orderBy('progress.studentId', 'ASC')
-  //     .skip(skip)
-  //     .take(limit)
-
-
-  //   const [data, total] = await Promise.all([
-  //     query.getRawMany(),
-  //     query.getCount(),
-  //   ]);
-
-  //   return {
-  //     data,
-  //     meta: {
-  //       total,
-  //       page,
-  //       limit,
-  //       totalPages: Math.ceil(total / limit),
-  //       hasNextPage: page * limit < total,
-  //       hasPreviousPage: page > 1,
-  //       nextPage: page * limit < total ? page + 1 : null,
-  //       prevPage: page > 1 ? page - 1 : null,
-  //     },
-  //   };
-  // }
-
   async getProgress(filter: ProgressFilterDto) {
     const page = Number(filter?.page ?? 1);
     const limit = Number(filter?.limit ?? 10);
@@ -214,6 +167,8 @@ export class GradesService {
       const existingAvg = await averageRepo.findOne({ where: { gradeId: updated.id } });
       if (existingAvg) {
         existingAvg.average = avg;
+        existingAvg.year = updated.year;
+        existingAvg.term = updated.term;
         await averageRepo.save(existingAvg);
       } else {
         await averageRepo.save({
