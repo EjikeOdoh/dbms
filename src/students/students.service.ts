@@ -204,40 +204,76 @@ export class StudentsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { page = 1, limit = 20 } = paginationDto;
+    const { page = 1, limit = 20, school } = paginationDto;
     const skip: number = (page - 1) * limit;
+    if (school) {
+      const [students, total] = await this.studentsRepository
+        .createQueryBuilder('student')
+        .select([
+          'student.id',
+          'student.firstName',
+          'student.lastName',
+          'student.dob',
+          'student.school',
+          'student.country',
+          'student.yearJoined',
+        ])
+        .where('LOWER(student.school) = LOWER(:school)', { school: school.trim() })
+        .skip(skip)
+        .take(limit)
+        .orderBy('student.firstName', 'ASC')
+        .getManyAndCount();
 
-    const [students, total] = await this.studentsRepository
-      .createQueryBuilder('student')
-      .select([
-        'student.id',
-        'student.firstName',
-        'student.lastName',
-        'student.dob',
-        'student.school',
-        'student.country',
-        'student.yearJoined',
-      ])
-      .skip(skip)
-      .take(limit)
-      .orderBy('student.firstName', 'ASC')
-      .getManyAndCount();
+      return {
+        data: students,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          nextPage:
+            Math.ceil(total / limit) > page
+              ? Number(page) + 1
+              : Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+          hasPreviousPage: page > 1,
+        },
+      };
+    } else {
+      const [students, total] = await this.studentsRepository
+        .createQueryBuilder('student')
+        .select([
+          'student.id',
+          'student.firstName',
+          'student.lastName',
+          'student.dob',
+          'student.school',
+          'student.country',
+          'student.yearJoined',
+        ])
+        .skip(skip)
+        .take(limit)
+        .orderBy('student.firstName', 'ASC')
+        .getManyAndCount();
 
-    return {
-      data: students,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        nextPage:
-          Math.ceil(total / limit) > page
-            ? Number(page) + 1
-            : Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
-        hasPreviousPage: page > 1,
-      },
-    };
+      return {
+        data: students,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          nextPage:
+            Math.ceil(total / limit) > page
+              ? Number(page) + 1
+              : Math.ceil(total / limit),
+          hasNextPage: page * limit < total,
+          hasPreviousPage: page > 1,
+        },
+      };
+    }
+
+
   }
 
   async findOne(id: number) {
@@ -317,6 +353,19 @@ export class StudentsService {
       count: total,
       students,
     };
+  }
+
+  async getAllSchools() {
+    const result = await this.participationRepository
+      .createQueryBuilder('participation')
+      .innerJoin('participation.student', 'student')
+      .select('DISTINCT TRIM(student.school)', 'school')
+      .where('participation.programId = 1')
+      .andWhere("TRIM(student.school) <> ''")
+      .orderBy('school', 'ASC')
+      .getRawMany();
+
+    return result.map(item => item.school);
   }
 
   async update(id: number, updateStudentDto: UpdateStudentDto) {

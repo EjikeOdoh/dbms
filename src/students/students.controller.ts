@@ -66,6 +66,15 @@ export class StudentsController {
     return this.studentsService.removeAll();
   }
 
+  @Get('schools')
+  @ApiOperation({ summary: `Get all schools` })
+  @ApiInternalServerErrorResponse({
+    example: `There was an error fetching schools`,
+  })
+  async findSchools() {
+    return this.studentsService.getAllSchools();
+  }
+
   @Get('search')
   @ApiOperation({ summary: `Search for students by their names` })
   @ApiOkResponse({ type: GetSearchResponseDto })

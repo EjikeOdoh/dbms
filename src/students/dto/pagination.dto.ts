@@ -3,6 +3,10 @@ import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PaginationDto {
+
+  @ApiPropertyOptional()
+  school?: string = ""
+
   @ApiPropertyOptional({})
   @IsOptional()
   @Type(() => Number)
