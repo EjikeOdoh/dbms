@@ -6,7 +6,6 @@ import { ProgramType } from 'src/programs/entities/program.entity';
 import { StudentsService } from 'src/students/students.service';
 import { FilterDto } from 'src/participation/dto/filter.dto';
 import { ParticipationService } from 'src/participation/participation.service';
-import { error } from 'console';
 
 @Injectable()
 export class UploadsService {

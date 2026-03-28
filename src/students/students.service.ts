@@ -112,53 +112,29 @@ export class StudentsService {
     }
   }
 
-  async createMany(createStudentDtos: CreateStudentDto[]) {
-    const results: {
-      index: number;
-      student?: Student;
-      success: boolean;
-      warnings?: string[];
-      error?: string;
-    }[] = [];
+  async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
+    const results: Student[] = [];
+    const errors: any[] = [];
 
-    for (let i = 0; i < createStudentDtos.length; i++) {
-      const dto = createStudentDtos[i];
-
-      try {
-        const result = await this.create(dto);
-
-        // support both return styles:
-        // - student
-        // - { student, warnings }
-        if ('student' in result) {
-          results.push({
-            index: i + 1, // CSV row number (1-based)
-            student: result,
-            success: true,
-          });
-        } else {
-          results.push({
-            index: i + 1,
-            student: result,
-            success: true,
+    await Promise.all(
+      createStudentDtos.map(async (studentDto) => {
+        try {
+          const student = await this.create(studentDto);
+          results.push(student);
+        } catch (error) {
+          errors.push({
+            error: error.message,
           });
         }
-      } catch (error) {
-        results.push({
-          index: i + 1,
-          success: false,
-          error: error.message,
-        });
-      }
-    }
+      }),
+    );
 
-    return {
-      total: createStudentDtos.length,
-      successCount: results.filter(r => r.success).length,
-      failureCount: results.filter(r => !r.success).length,
-      results,
-    };
+    if (errors.length > 0) {
+      console.error('Some students could not be created:', errors);
+    }
+    return results;
   }
+
 
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 20, school } = paginationDto;
