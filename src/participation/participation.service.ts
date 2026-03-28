@@ -353,6 +353,11 @@ export class ParticipationService {
       whereParts.push(`p.year = $${params.length}`);
     }
 
+    if (filterByProgramDto?.school) {
+      params.push(`%${filterByProgramDto.school.toLowerCase()}%`);
+      whereParts.push(`LOWER(s.school::text) LIKE $${params.length}`);
+    }
+
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
     // 1. Get paginated IDs
@@ -378,6 +383,7 @@ export class ParticipationService {
       SELECT COUNT(*)::int AS count
       FROM participation p
       LEFT JOIN programs pr ON pr.id = p."programId"
+      LEFT JOIN students s ON s.id = p."studentId"
       ${whereSql}
     `;
 
@@ -406,6 +412,7 @@ export class ParticipationService {
         s.id AS "studentId",
         s."firstName" AS "firstName",
         s."lastName" AS "lastName",
+        s.school AS school,
         s.dob AS dob,
         s.country AS country,
         pr.program::text AS program,
@@ -416,7 +423,7 @@ export class ParticipationService {
       LEFT JOIN students s ON s.id = p."studentId"
       LEFT JOIN programs pr ON pr.id = p."programId"
       WHERE p.id = ANY($1)
-      ORDER BY p.year DESC, p.quarter DESC, s."firstName" ASC
+      ORDER BY s."firstName" ASC
     `;
 
     const data = await this.participationRepository.query(dataSql, [ids]);

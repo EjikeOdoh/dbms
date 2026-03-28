@@ -112,6 +112,10 @@ export class GradesService {
       .leftJoin('students', 'student', 'student.id = progress.studentId')
       .where('progress.year = :year', { year: filter.year });
 
+    if (filter.school) {
+      baseQuery.andWhere('student.school = :school', { school: filter.school });
+    }
+
     // ✅ Clone BEFORE counting
     const total = await baseQuery.clone().getCount();
 

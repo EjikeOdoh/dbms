@@ -29,102 +29,64 @@ export class StudentsService {
   ) { }
 
   async create(createStudentDto: CreateStudentDto) {
-    const {
-      grades,
-      year,
-      program,
-      quarter,
-      firstName,
-      lastName,
-      term,
-      ...rest
-    } = createStudentDto;
-
-    // 1. Program must exist (hard stop)
-    const currentProgram = await this.programsService.findOne({
-      where: { program },
-    });
-
-    if (!currentProgram) {
-      throw new NotFoundException(`Program with name ${program} not found`);
-    }
-
-    // 2. Find or create student (hard stop)
-    const studentWhere =
-      program !== 'CBC'
-        ? {
-          firstName,
-          lastName,
-          dob: rest.dob,
-          school: rest.school,
-        }
-        : {
-          firstName,
-          lastName,
-          dob: rest.dob,
-        };
-
-    let student = await this.studentsRepository.findOne({ where: studentWhere });
-
-    if (!student) {
-      const newStudent = this.studentsRepository.create({
-        ...rest,
+    try {
+      const {
+        grades,
+        year,
+        program,
+        quarter,
         firstName,
         lastName,
-        yearJoined: year,
-      });
+        term,
+        ...rest
+      } = createStudentDto;
 
-      student = await this.studentsRepository.save(newStudent);
-    } else if (student.yearJoined > year) {
-      await this.studentsRepository.update(student.id, { yearJoined: year });
-      student.yearJoined = year;
-    }
-
-    // 3. Prepare soft tasks (grade + participation)
-    const tasks: Promise<any>[] = [];
-
-    // Grade task (soft)
-    if (grades && program === 'ASCG') {
-      tasks.push(
-        (async () => {
-          const academicYear = Number(createStudentDto.academicYear);
-
-          if (!Number.isInteger(academicYear)) {
-            throw new Error(`Invalid academicYear: ${createStudentDto.academicYear}`);
+      // 2. Find or create student (hard stop)
+      const studentWhere =
+        program !== 2
+          ? {
+            firstName,
+            lastName,
+            dob: rest.dob,
+            school: rest.school,
           }
+          : {
+            firstName,
+            lastName,
+            dob: rest.dob,
+          };
 
-          const currentGrade = await this.gradesService.findGrade(
-            student,
-            academicYear,
-            term,
-          );
+      let student = await this.studentsRepository.findOne({ where: studentWhere });
 
-          if (!currentGrade) {
-            await this.gradesService.create({
-              ...grades,
-              year: academicYear,
-              term,
-              studentId: student.id,
-              class: createStudentDto.currentClass
-            });
-          } else {
-            await this.gradesService.update(currentGrade.id, {
-              ...grades,
-              term,
-            });
-          }
-        })(),
-      );
-    }
+      if (!student) {
+        const newStudent = this.studentsRepository.create({
+          ...rest,
+          firstName,
+          lastName,
+          yearJoined: year,
+        });
 
-    // Participation task (soft)
-    tasks.push(
-      (async () => {
+        student = await this.studentsRepository.save(newStudent);
+
+        await this.participationService.create({
+          studentId: student.id,
+          programId: program,
+          quarter,
+          year,
+          tag: createStudentDto.tag,
+        });
+
+      } else {
+        if (student.yearJoined > year) {
+          await this.studentsRepository.update(student.id, { yearJoined: year });
+          student.yearJoined = year;
+        }
+
         const existingParticipation =
           await this.participationRepository.findOne({
             where: {
               student: { id: student.id },
-              program: { id: currentProgram.id },
+              program: { id: program },
               year,
               quarter,
             },
@@ -133,26 +95,21 @@ export class StudentsService {
         if (!existingParticipation) {
           await this.participationService.create({
             studentId: student.id,
-            programId: currentProgram.id,
+            programId: program,
             quarter,
             year,
             tag: createStudentDto.tag,
           });
         }
-      })(),
-    );
 
-    // 4. Execute soft tasks in parallel
-    const results = await Promise.allSettled(tasks);
-
-    // 5. Log failures without breaking flow
-    results.forEach((result) => {
-      if (result.status === 'rejected') {
-        Logger.warn(result.reason?.message || result.reason);
       }
-    });
 
-    return student;
+      return student;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        error.message || 'An error occurred while creating the student',
+      );
+    }
   }
 
   async createMany(createStudentDtos: CreateStudentDto[]) {

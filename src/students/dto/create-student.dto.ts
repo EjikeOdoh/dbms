@@ -274,13 +274,12 @@ export class CreateStudentDto {
   grades?: CreateGradeDto;
 
   @ApiProperty({
-    example: ProgramType.ASCG,
+    example: 1,
     required: false,
-    enum: ProgramType,
   })
-  @IsEnum(ProgramType)
+  @IsInt()
   @IsNotEmpty()
-  program: ProgramType;
+  program: number;
 
   @ApiProperty({
     required: true,

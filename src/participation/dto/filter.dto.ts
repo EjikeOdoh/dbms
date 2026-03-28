@@ -25,6 +25,7 @@ export class FilterByCountryDto {
   country?: string
   program?: string
   year?: number
+  school?: string
 
   @IsOptional()
   @IsInt()
@@ -54,6 +55,8 @@ export class ProgressFilterDto {
   @Min(10)
   @Type(() => Number)
   limit?: number = 10;
+
+  school?: string
 }
 
 

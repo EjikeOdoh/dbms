@@ -7,6 +7,7 @@ export const GRADE_POINTS: Record<string, number> = {
   D: 2,
   E: 1,
   F: 0,
+  P: 3
 };
 
 
