@@ -277,7 +277,7 @@ export class CreateStudentDto {
     example: 1,
     required: false,
   })
-  @IsInt()
+  @IsNumber()
   @IsNotEmpty()
   program: number;
 

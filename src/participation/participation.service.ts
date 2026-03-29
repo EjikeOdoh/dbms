@@ -32,6 +32,7 @@ export class ParticipationService {
     const student = await this.studentsRepository.findOne({
       where: { id: studentId },
     });
+    console.log(student)
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
@@ -39,9 +40,13 @@ export class ParticipationService {
     const p = await this.programsRepository.findOne({
       where: { id: programId },
     });
+
+    console.log(p)
     if (!p) {
       throw new NotFoundException(`Program not found`);
     }
+
+
 
     const participation = this.participationRepository.create({
       ...rest,
