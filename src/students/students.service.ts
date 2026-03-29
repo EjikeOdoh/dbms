@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -28,36 +29,32 @@ export class StudentsService {
     private participationService: ParticipationService,
   ) { }
 
-  async create(createStudentDto: CreateStudentDto) {
+   async create(createStudentDto: CreateStudentDto) {
+    const { grades, year, program, quarter, firstName, lastName, ...rest } = createStudentDto;
+
+    // Check if student already exists
+    const existingStudent =
+      program !== 2
+        ? await this.studentsRepository.findOne({
+            where: {
+              firstName: firstName,
+              lastName: lastName,
+              dob: rest.dob,
+              school: rest.school,
+            },
+          })
+        : await this.studentsRepository.findOne({
+            where: {
+              firstName: firstName,
+              lastName: lastName,
+              dob: rest.dob,
+            },
+          });
+
     try {
-      const {
-        grades,
-        year,
-        program,
-        quarter,
-        firstName,
-        lastName,
-        term,
-        ...rest
-      } = createStudentDto;
+      let student = existingStudent;
 
-      // 2. Find or create student (hard stop)
-      const studentWhere =
-        program !== 2
-          ? {
-            firstName,
-            lastName,
-            dob: rest.dob,
-            school: rest.school,
-          }
-          : {
-            firstName,
-            lastName,
-            dob: rest.dob,
-          };
-
-      let student = await this.studentsRepository.findOne({ where: studentWhere });
-
+      // If student doesn't exist, create new student
       if (!student) {
         const newStudent = this.studentsRepository.create({
           ...rest,
@@ -65,9 +62,27 @@ export class StudentsService {
           lastName,
           yearJoined: year,
         });
-
         student = await this.studentsRepository.save(newStudent);
+      } else {
+        // Update yearJoined if provided year is more recent
+        if (student.yearJoined > year) {
+          await this.update(student.id, { year: year });
+          student.yearJoined = year;
+        }
+      }
 
+      // Check for existing participation
+      const existingParticipation = await this.participationRepository.findOne({
+        where: {
+          student: { id: student.id },
+          program: { id: program },
+          year,
+          quarter,
+        },
+      });
+
+      // Create participation if it doesn't exist
+      if (!existingParticipation) {
         await this.participationService.create({
           studentId: student.id,
           programId: program,
@@ -75,44 +90,107 @@ export class StudentsService {
           year,
           tag: createStudentDto.tag,
         });
-
-      } else {
-        if (student.yearJoined > year) {
-          await this.studentsRepository.update(student.id, { yearJoined: year });
-          student.yearJoined = year;
-        }
-
-        const existingParticipation =
-          await this.participationRepository.findOne({
-            where: {
-              student: { id: student.id },
-              program: { id: program },
-              year,
-              quarter,
-            },
-          });
-
-        if (!existingParticipation) {
-          await this.participationService.create({
-            studentId: student.id,
-            programId: program,
-            quarter,
-            year,
-            tag: createStudentDto.tag,
-          });
-        }
-
       }
 
       return student;
     } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException(
+          `Student with provided details already exists: ${firstName} ${lastName}`,
+        );
+      }
+      Logger.log(error);
       throw new InternalServerErrorException(
-        error.message || 'An error occurred while creating the student',
+        `An unexpected error occurred while processing student: ${firstName} ${lastName}`,
       );
     }
   }
 
-  async createMany(createStudentDtos: CreateStudentDto[]): Promise<Student[]> {
+  // async create(createStudentDto: CreateStudentDto) {
+  //   try {
+  //     const {
+  //       grades,
+  //       year,
+  //       program,
+  //       quarter,
+  //       firstName,
+  //       lastName,
+  //       term,
+  //       ...rest
+  //     } = createStudentDto;
+
+  //     // 2. Find or create student (hard stop)
+  //     const studentWhere =
+  //       program !== 2
+  //         ? {
+  //           firstName,
+  //           lastName,
+  //           dob: rest.dob,
+  //           school: rest.school,
+  //         }
+  //         : {
+  //           firstName,
+  //           lastName,
+  //           dob: rest.dob,
+  //         };
+
+  //     let student = await this.studentsRepository.findOne({ where: studentWhere });
+
+  //     if (!student) {
+  //       const newStudent = this.studentsRepository.create({
+  //         ...rest,
+  //         firstName,
+  //         lastName,
+  //         yearJoined: year,
+  //       });
+
+  //       student = await this.studentsRepository.save(newStudent);
+
+  //       await this.participationService.create({
+  //         studentId: student.id,
+  //         programId: program,
+  //         quarter,
+  //         year,
+  //         tag: createStudentDto.tag,
+  //       });
+
+  //     } else {
+  //       if (student.yearJoined > year) {
+  //         await this.studentsRepository.update(student.id, { yearJoined: year });
+  //         student.yearJoined = year;
+  //       }
+
+  //       const existingParticipation =
+  //         await this.participationRepository.findOne({
+  //           where: {
+  //             student: { id: student.id },
+  //             program: { id: program },
+  //             year,
+  //             quarter,
+  //           },
+  //         });
+
+  //       if (!existingParticipation) {
+  //         await this.participationService.create({
+  //           studentId: student.id,
+  //           programId: program,
+  //           quarter,
+  //           year,
+  //           tag: createStudentDto.tag,
+  //         });
+  //       }
+
+  //     }
+
+  //     return student;
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(
+  //       error.message || 'An error occurred while creating the student',
+  //     );
+  //   }
+  // }
+
+  async createMany(createStudentDtos: CreateStudentDto[]){
     const results: Student[] = [];
     const errors: any[] = [];
 
@@ -132,7 +210,6 @@ export class StudentsService {
     if (errors.length > 0) {
       console.error('Some students could not be created:', errors);
     }
-    return results;
   }
 
 
