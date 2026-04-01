@@ -30,7 +30,7 @@ import { TagModule } from './tag/tag.module';
         url: configService.get<string>('NEON_DB'),
         autoLoadEntities: true,
         synchronize: true,
-        logging: true,
+        // logging: true,
         ssl: {
           rejectUnauthorized: false,
         },

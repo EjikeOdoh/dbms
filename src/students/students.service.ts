@@ -106,7 +106,6 @@ export class StudentsService {
     }
   }
 
-
   async findAll(paginationDto: PaginationDto) {
     const { page = 1, limit = 20, school } = paginationDto;
     const skip: number = (page - 1) * limit;
@@ -206,58 +205,65 @@ export class StudentsService {
     return { ...student, grades, participations, progress };
   }
 
-  async findByNames(name: string) {
-    const nameParts = name.trim().split(/\s+/);
-    const queryBuilder = this.studentsRepository.createQueryBuilder('student');
-    if (nameParts.length === 1) {
-      // Single name search
-      queryBuilder
-        .where('LOWER(student.firstName) LIKE LOWER(:name)', {
+ async findByNames(name: string, school?: string) {
+  const nameParts = name.trim().split(/\s+/);
+  const queryBuilder = this.studentsRepository.createQueryBuilder('student');
+
+  // Always wrap name conditions in Brackets
+  queryBuilder.where(
+    new Brackets((qb) => {
+      if (nameParts.length === 1) {
+        // Single name search
+        qb.where('LOWER(student.firstName) LIKE LOWER(:name)', {
           name: `%${nameParts[0]}%`,
-        })
-        .orWhere('LOWER(student.lastName) LIKE LOWER(:name)', {
+        }).orWhere('LOWER(student.lastName) LIKE LOWER(:name)', {
           name: `%${nameParts[0]}%`,
         });
-    } else {
-      // Full name search (first + last name)
-      queryBuilder.where(
-        new Brackets((qb) => {
-          qb.where(
-            'LOWER(student.firstName) LIKE LOWER(:firstName) AND LOWER(student.lastName) LIKE LOWER(:lastName)',
-            {
-              firstName: `%${nameParts[0]}%`,
-              lastName: `%${nameParts[1]}%`,
-            },
-          ).orWhere(
-            'LOWER(student.firstName) LIKE LOWER(:lastName) AND LOWER(student.lastName) LIKE LOWER(:firstName)',
-            {
-              firstName: `%${nameParts[0]}%`,
-              lastName: `%${nameParts[1]}%`,
-            },
-          );
-        }),
-      );
-    }
+      } else {
+        // First + last name (both orders)
+        qb.where(
+          'LOWER(student.firstName) LIKE LOWER(:firstName) AND LOWER(student.lastName) LIKE LOWER(:lastName)',
+          {
+            firstName: `%${nameParts[0]}%`,
+            lastName: `%${nameParts[1]}%`,
+          },
+        ).orWhere(
+          'LOWER(student.firstName) LIKE LOWER(:lastName) AND LOWER(student.lastName) LIKE LOWER(:firstName)',
+          {
+            firstName: `%${nameParts[0]}%`,
+            lastName: `%${nameParts[1]}%`,
+          },
+        );
+      }
+    }),
+  );
 
-    const [students, total] = await queryBuilder
-      .select([
-        'student.id',
-        'student.firstName',
-        'student.lastName',
-        'student.dob',
-        'student.school',
-        'student.country',
-        'student.yearJoined',
-      ])
-      .orderBy('student.firstName', 'ASC')
-      .getManyAndCount();
-
-
-    return {
-      count: total,
-      students,
-    };
+  // Apply school filter correctly
+  if (school) {
+    queryBuilder.andWhere(
+      'LOWER(TRIM(student.school)) = LOWER(TRIM(:school))',
+      { school: school.trim() },
+    );
   }
+
+  const [students, total] = await queryBuilder
+    .select([
+      'student.id',
+      'student.firstName',
+      'student.lastName',
+      'student.dob',
+      'student.school',
+      'student.country',
+      'student.yearJoined',
+    ])
+    .orderBy('student.firstName', 'ASC')
+    .getManyAndCount();
+
+  return {
+    count: total,
+    students,
+  };
+}
 
   async getAllSchools() {
     const result = await this.participationRepository

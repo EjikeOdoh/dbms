@@ -81,8 +81,8 @@ export class StudentsController {
   @ApiInternalServerErrorResponse({
     example: `There was an error searching for matching students`,
   })
-  async search(@Query('name') name: string) {
-    return this.studentsService.findByNames(name);
+  async search(@Query('name') name: string, @Query('school') school?: string) {
+    return this.studentsService.findByNames(name, school);
   }
 
   @Get(':id')
