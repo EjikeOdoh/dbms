@@ -13,6 +13,8 @@ import { Student } from 'src/students/entities/student.entity';
 import { Term } from 'src/enums/term.enum';
 import { calculateTermAverage } from 'src/utils/academicProgress';
 import { ProgressFilterDto } from 'src/participation/dto/filter.dto';
+import { ParticipationService } from 'src/participation/participation.service';
+import { downloader } from 'src/utils/downloader';
 
 @Injectable()
 export class GradesService {
@@ -21,7 +23,8 @@ export class GradesService {
     @InjectRepository(Grade) private gradesRepository: Repository<Grade>,
     @InjectRepository(Student) private studentsRepository: Repository<Student>,
     @InjectRepository(AcademicProgress) private progressRepository: Repository<AcademicProgress>,
-    private dataSource: DataSource
+    private dataSource: DataSource,
+    private participationService: ParticipationService
   ) { }
 
   async create(createGradeDto: CreateGradeDto) {
@@ -152,6 +155,48 @@ export class GradesService {
         prevPage: page > 1 ? page - 1 : null,
       },
     };
+  }
+
+  async downloadProgressSheet(filter: ProgressFilterDto) {
+    const query = this.progressRepository
+      .createQueryBuilder('progress')
+      .leftJoin('students', 'student', 'student.id = progress.studentId')
+      .where('progress.year = :year', { year: filter.year });
+
+    if (filter.school) {
+      query.andWhere('student.school = :school', { school: filter.school });
+    }
+
+    const data = await query
+      .select([
+        'progress.studentId AS "studentId"',
+        'progress.year AS "year"',
+        'progress.numberOfTerms AS "numberOfTerms"',
+        'progress.firstTermAvg AS "firstTermAvg"',
+        'progress.secondTermAvg AS "secondTermAvg"',
+        'progress.thirdTermAvg AS "thirdTermAvg"',
+        'progress.madeProgress AS "madeProgress"',
+        'student.firstName AS "firstName"',
+        'student.lastName AS "lastName"',
+        'student.school AS "school"',
+      ])
+      .orderBy('progress.studentId', 'ASC')
+      .getRawMany();
+
+
+    const total = await this.participationService.findMultipleParticipation({ year: filter.year, school: filter.school })
+
+
+    const lookup = new Map(data.map(student => [student.studentId, student]))
+
+
+    const records = total.data.map(r => {
+      const match = lookup.get(r.studentId)
+      return !!match ? { ...r, complete: true } : { ...r, complete: false }
+    })
+
+    return downloader({ year: filter.year, school: filter.school, data: records })
+
   }
 
   async update(id: number, dto: UpdateGradeDto) {

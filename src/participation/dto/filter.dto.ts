@@ -95,3 +95,11 @@ export type QuarterGroup = {
   [program: string]: number | string;
 };
 
+export type MultiPlePart = {
+  year: number,
+  school?: string
+}
+
+export interface MPD extends MultiPlePart {
+  data: any[]
+}

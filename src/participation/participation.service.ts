@@ -11,7 +11,7 @@ import { Participation } from './entities/participation.entity';
 import { Repository } from 'typeorm';
 import { Student } from 'src/students/entities/student.entity';
 import { Program } from 'src/programs/entities/program.entity';
-import { AgeRangeSummary, DBQuery, FilterByCountryDto, FilterDto, QuarterGroup, QuarterlyProgramBreakdown } from './dto/filter.dto';
+import { AgeRangeSummary, DBQuery, FilterByCountryDto, FilterDto, MultiPlePart, QuarterGroup, QuarterlyProgramBreakdown } from './dto/filter.dto';
 import { TargetService } from 'src/target/target.service';
 import { AcademicProgress } from 'src/grades/entities/grade.entity';
 
@@ -32,7 +32,7 @@ export class ParticipationService {
     const student = await this.studentsRepository.findOne({
       where: { id: studentId },
     });
-    console.log(student)
+
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
@@ -41,12 +41,9 @@ export class ParticipationService {
       where: { id: programId },
     });
 
-    console.log(p)
     if (!p) {
       throw new NotFoundException(`Program not found`);
     }
-
-
 
     const participation = this.participationRepository.create({
       ...rest,
@@ -446,6 +443,42 @@ export class ParticipationService {
         prevPage: page > 1 ? page - 1 : null,
       },
     };
+  }
+
+  async findMultipleParticipation(options?: MultiPlePart) {
+    const { year, school } = options
+
+    const queryBuilder = this.participationRepository
+      .createQueryBuilder('p')
+      .leftJoin('p.student', 'student')
+      .leftJoin('p.program', 'program')
+      .select('student.id', 'studentId')
+      .addSelect('student.firstName', 'firstName')
+      .addSelect('student.lastName', 'lastName')
+      .addSelect('student.school', 'school')
+      .addSelect('student.currentClass', 'class')
+      .addSelect('COUNT(p.id)', 'participationCount')
+      .where('program.program = :program', { program: 'ASCG' })
+      .andWhere('p.year = :year', { year });
+
+    if (school) {
+      queryBuilder.andWhere('student.school = :school', { school });
+    }
+
+    queryBuilder
+      .groupBy('student.id')
+      .addGroupBy('student.firstName')
+      .addGroupBy('student.lastName')
+      .having('COUNT(p.id) > 1')
+      .orderBy('student.firstName', 'ASC');
+
+    const results = await queryBuilder.getRawMany();
+
+    return {
+      data: results,
+      count: results.length,
+    };
+
   }
 
   async findOne(id: number) {

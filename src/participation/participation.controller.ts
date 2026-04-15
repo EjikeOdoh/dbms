@@ -14,7 +14,7 @@ import {
   CreateParticipationDto,
 } from './dto/create-participation.dto';
 import { UpdateParticipationDto } from './dto/update-participation.dto';
-import { FilterByCountryDto, FilterDto } from './dto/filter.dto';
+import { FilterByCountryDto, FilterDto, MultiPlePart } from './dto/filter.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -94,6 +94,11 @@ export class ParticipationController {
   @Get('breakdown')
   async countPerPhase(@Query('year') year?: number) {
     return this.participationService.getProgramBreakdown(year)
+  }
+
+  @Get('multiple-part')
+  async getMultiples(@Query() options: MultiPlePart) {
+    return this.participationService.findMultipleParticipation(options)
   }
 
   @Get(':id')

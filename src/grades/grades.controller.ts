@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Res,
 } from '@nestjs/common';
 import { GradesService } from './grades.service';
 import {
@@ -27,11 +28,12 @@ import {
 } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
 import { ProgressFilterDto } from 'src/participation/dto/filter.dto';
+import { Response } from 'express';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('grades')
 export class GradesController {
-  constructor(private readonly gradesService: GradesService) {}
+  constructor(private readonly gradesService: GradesService) { }
 
   @Post()
   @ApiOperation({
@@ -67,6 +69,18 @@ export class GradesController {
   @Get('progress')
   async getProgress(@Query() filter: ProgressFilterDto) {
     return await this.gradesService.getProgress(filter);
+  }
+
+  @Get('all-progress')
+  async getAllStudentsProgress(@Query() filter: ProgressFilterDto, @Res() res: Response) {
+    const { buffer, fileName } = await this.gradesService.downloadProgressSheet(filter)
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${fileName}"`,
+    });
+
+    res.send(buffer);
   }
 
   @Get(':id')
