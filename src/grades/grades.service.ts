@@ -115,7 +115,11 @@ export class GradesService {
       .leftJoin('students', 'student', 'student.id = progress.studentId')
       .where('progress.year = :year', { year: filter.year });
 
-    if (filter.school) {
+      // Get all schools where students have progress records for the specified year
+    let schools = await baseQuery.clone().select('DISTINCT student.school', 'school').getRawMany();
+    schools = schools.filter(s => (s.school && s.school !== null)).map(s => s.school).sort()
+
+    if (filter.school && filter.school !== " ") {
       baseQuery.andWhere('student.school = :school', { school: filter.school });
     }
 
@@ -144,6 +148,7 @@ export class GradesService {
 
     return {
       data,
+      schools,
       meta: {
         total,
         page,
@@ -180,7 +185,7 @@ export class GradesService {
         'student.lastName AS "lastName"',
         'student.school AS "school"',
       ])
-      .orderBy('progress.studentId', 'ASC')
+      .orderBy('student.school', 'ASC')
       .getRawMany();
 
 
@@ -192,8 +197,10 @@ export class GradesService {
 
     const records = total.data.map(r => {
       const match = lookup.get(r.studentId)
+      delete r.studentId;
       return !!match ? { ...r, complete: true } : { ...r, complete: false }
     })
+
 
     return downloader({ year: filter.year, school: filter.school, data: records })
 

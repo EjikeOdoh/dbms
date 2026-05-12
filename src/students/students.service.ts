@@ -86,7 +86,7 @@ export class StudentsService {
   }
 
   async createMany(createStudentDtos: CreateStudentDto[]) {
-  
+
     const errors: any[] = [];
 
     await Promise.all(
@@ -205,65 +205,65 @@ export class StudentsService {
     return { ...student, grades, participations, progress };
   }
 
- async findByNames(name: string, school?: string) {
-  const nameParts = name.trim().split(/\s+/);
-  const queryBuilder = this.studentsRepository.createQueryBuilder('student');
+  async findByNames(name: string, school?: string) {
+    const nameParts = name.trim().split(/\s+/);
+    const queryBuilder = this.studentsRepository.createQueryBuilder('student');
 
-  // Always wrap name conditions in Brackets
-  queryBuilder.where(
-    new Brackets((qb) => {
-      if (nameParts.length === 1) {
-        // Single name search
-        qb.where('LOWER(student.firstName) LIKE LOWER(:name)', {
-          name: `%${nameParts[0]}%`,
-        }).orWhere('LOWER(student.lastName) LIKE LOWER(:name)', {
-          name: `%${nameParts[0]}%`,
-        });
-      } else {
-        // First + last name (both orders)
-        qb.where(
-          'LOWER(student.firstName) LIKE LOWER(:firstName) AND LOWER(student.lastName) LIKE LOWER(:lastName)',
-          {
-            firstName: `%${nameParts[0]}%`,
-            lastName: `%${nameParts[1]}%`,
-          },
-        ).orWhere(
-          'LOWER(student.firstName) LIKE LOWER(:lastName) AND LOWER(student.lastName) LIKE LOWER(:firstName)',
-          {
-            firstName: `%${nameParts[0]}%`,
-            lastName: `%${nameParts[1]}%`,
-          },
-        );
-      }
-    }),
-  );
-
-  // Apply school filter correctly
-  if (school) {
-    queryBuilder.andWhere(
-      'LOWER(TRIM(student.school)) = LOWER(TRIM(:school))',
-      { school: school.trim() },
+    // Always wrap name conditions in Brackets
+    queryBuilder.where(
+      new Brackets((qb) => {
+        if (nameParts.length === 1) {
+          // Single name search
+          qb.where('LOWER(student.firstName) LIKE LOWER(:name)', {
+            name: `%${nameParts[0]}%`,
+          }).orWhere('LOWER(student.lastName) LIKE LOWER(:name)', {
+            name: `%${nameParts[0]}%`,
+          });
+        } else {
+          // First + last name (both orders)
+          qb.where(
+            'LOWER(student.firstName) LIKE LOWER(:firstName) AND LOWER(student.lastName) LIKE LOWER(:lastName)',
+            {
+              firstName: `%${nameParts[0]}%`,
+              lastName: `%${nameParts[1]}%`,
+            },
+          ).orWhere(
+            'LOWER(student.firstName) LIKE LOWER(:lastName) AND LOWER(student.lastName) LIKE LOWER(:firstName)',
+            {
+              firstName: `%${nameParts[0]}%`,
+              lastName: `%${nameParts[1]}%`,
+            },
+          );
+        }
+      }),
     );
+
+    // Apply school filter correctly
+    if (school) {
+      queryBuilder.andWhere(
+        'LOWER(TRIM(student.school)) = LOWER(TRIM(:school))',
+        { school: school.trim() },
+      );
+    }
+
+    const [students, total] = await queryBuilder
+      .select([
+        'student.id',
+        'student.firstName',
+        'student.lastName',
+        'student.dob',
+        'student.school',
+        'student.country',
+        'student.yearJoined',
+      ])
+      .orderBy('student.firstName', 'ASC')
+      .getManyAndCount();
+
+    return {
+      count: total,
+      students,
+    };
   }
-
-  const [students, total] = await queryBuilder
-    .select([
-      'student.id',
-      'student.firstName',
-      'student.lastName',
-      'student.dob',
-      'student.school',
-      'student.country',
-      'student.yearJoined',
-    ])
-    .orderBy('student.firstName', 'ASC')
-    .getManyAndCount();
-
-  return {
-    count: total,
-    students,
-  };
-}
 
   async getAllSchools() {
     const result = await this.participationRepository
@@ -315,5 +315,14 @@ export class StudentsService {
         'An error occurred while truncating the students table.',
       );
     }
+  }
+
+  async bulkUpdate(arr: number[], school: string) {
+    const students = await Promise.all(
+      arr.map(async (student) => {
+        return this.update(student, { school });
+      })
+    );
+    return 'Done'
   }
 }

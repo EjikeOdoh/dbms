@@ -457,6 +457,9 @@ export class ParticipationService {
       .addSelect('student.lastName', 'lastName')
       .addSelect('student.school', 'school')
       .addSelect('student.currentClass', 'class')
+      .addSelect('student.phone', 'phone')
+      .addSelect('student.fatherPhone', 'fatherPhone')
+      .addSelect('student.motherPhone', 'motherPhone')
       .addSelect('COUNT(p.id)', 'participationCount')
       .where('program.program = :program', { program: 'ASCG' })
       .andWhere('p.year = :year', { year });
@@ -470,7 +473,7 @@ export class ParticipationService {
       .addGroupBy('student.firstName')
       .addGroupBy('student.lastName')
       .having('COUNT(p.id) > 1')
-      .orderBy('student.firstName', 'ASC');
+      .orderBy('student.school', 'ASC');
 
     const results = await queryBuilder.getRawMany();
 
