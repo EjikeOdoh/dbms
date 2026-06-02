@@ -18,6 +18,13 @@ export class UploadsService {
     let records: any[];
     let errors = [];
 
+       records = this.parseXLSX(filePath);
+      const studentsData = records.map((record) =>
+        this.mapToCreateStudentDto(record, data, errors),
+      );
+
+      console.log(studentsData)
+
     try {
       records = this.parseXLSX(filePath);
       const studentsData = records.map((record) =>
@@ -131,6 +138,7 @@ export class UploadsService {
     }
     if (!country) {
       console.log(record)
+      console.log(errorArr)
       errorArr.push(record)
     }
 
@@ -169,7 +177,7 @@ export class UploadsService {
       term: ['CBC', 'DSC', 'SSC'].includes(ProgramType[data['program']])
         ? undefined
         : record['TERM'].toString().trim().toLowerCase(),
-      program: ProgramType[data['program']],
+      program: parseInt(data['program']),
       grades: {
         english: record['ENGLISH'],
         math: record['MATHEMATICS'] || record['MATHS'],
