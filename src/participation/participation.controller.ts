@@ -64,7 +64,7 @@ export class ParticipationController {
   @ApiInternalServerErrorResponse({
     example: `An unexpected error occurred while fetching all stats.`,
   })
-  async findAll(@Query('year') year: number) {
+  async findAll(@Query('year') year?: number) {
     return await this.participationService.getStats(year);
   }
 

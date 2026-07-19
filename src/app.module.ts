@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StudentsModule } from './students/students.module';
@@ -16,6 +16,8 @@ import { PartnersModule } from './partners/partners.module';
 import { SponsorshipModule } from './sponsorship/sponsorship.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { TagModule } from './tag/tag.module';
+import { LoggerMiddleware } from './utils/logger/logger.middleware';
+import { AuthController } from './auth/auth.controller';
 
 @Module({
   imports: [
@@ -55,4 +57,10 @@ import { TagModule } from './tag/tag.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+    .apply(LoggerMiddleware)
+    .forRoutes(AuthController)
+  }
+}

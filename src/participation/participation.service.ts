@@ -65,6 +65,9 @@ export class ParticipationService {
     let target: number;
     let progress: number = 0
 
+    // Check for later
+    let returning: number = 0
+
     // Get unique count
     let uniqueCount = await this.studentsRepository.count();
 
@@ -131,6 +134,38 @@ export class ParticipationService {
     // Get total count
     const totalCount = await queryBuilder.getCount();
 
+
+    // New stat
+    const st = await this.participationRepository
+      .createQueryBuilder('participation')
+      .leftJoin('participation.program', 'program')
+      .leftJoin('participation.student', 'student')
+      .where('participation.year = :year', { year })
+      .select('program.program', 'program')
+      .addSelect('COUNT(DISTINCT student.id)', 'totalStudents')
+      .addSelect(
+      `SUM(CASE WHEN student.id IN (
+        SELECT "studentId" FROM participation p 
+        WHERE p."programId" = participation."programId" 
+        GROUP BY "studentId" HAVING COUNT(*) > 1
+      ) THEN 1 ELSE 0 END)`,
+      'studentsWithMultipleParticipations'
+      )
+      .addSelect(
+      `SUM(CASE WHEN student.id IN (
+        SELECT "studentId" FROM participation p 
+        WHERE p."programId" = participation."programId" 
+        GROUP BY "studentId" HAVING COUNT(*) = 1
+      ) THEN 1 ELSE 0 END)`,
+      'uniqueStudents'
+      )
+      .groupBy('program.program')
+      .getRawMany();
+
+
+      const outreach = await queryBuilder.where('LOWER(participation.tag) LIKE :tag', { tag: '%outreach%' }).getRawMany();
+
+
     // Count by year (fresh builder so it's not affected by previous filters)
     const countByYear = await this.participationRepository
       .createQueryBuilder('participation')
@@ -185,7 +220,9 @@ export class ParticipationService {
       highestYearlyCount,
       target: target ?? 0,
       years,
-      progress
+      progress,
+      st,
+      outreach
     };
   }
 

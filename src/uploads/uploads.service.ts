@@ -128,18 +128,9 @@ export class UploadsService {
     const country = record['COUNTRY']?.toString().trim();
 
     // ---- VALIDATION ----
-    if (!firstName) {
-      console.log(record)
+    if (!firstName || !lastName || !country) {
       errorArr.push(record)
-    }
-    if (!lastName) {
-      console.log(record)
-      errorArr.push(record)
-    }
-    if (!country) {
-      console.log(record)
       console.log(errorArr)
-      errorArr.push(record)
     }
 
 
