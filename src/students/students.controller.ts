@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Request,
 } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import {
@@ -30,11 +31,14 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
+import { SecurityLogsService } from 'src/security-logs/security-logs.service';
+import { AuditEvent } from 'src/security-logs/event-types';
+import { AuditOutcome } from 'src/security-logs/entities/security-log.entity';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('students')
 export class StudentsController {
-  constructor(private readonly studentsService: StudentsService) { }
+  constructor(private readonly studentsService: StudentsService, private readonly audit: SecurityLogsService) { }
 
   @Post()
   @ApiOperation({ summary: `Add new student` })
@@ -117,8 +121,18 @@ export class StudentsController {
   async update(
     @Param('id') id: string,
     @Body() updateStudentDto: UpdateStudentDto,
+    @Request() req,
   ) {
-    return this.studentsService.update(+id, updateStudentDto);
+    const before = await this.studentsService.findOne(+id);
+    const updated = await this.studentsService.update(+id, updateStudentDto);
+    const changedFields = Object.keys(updateStudentDto).filter(key => updateStudentDto[key] !== undefined);
+    const sensitive = new Set(['address', 'phone', 'email', 'dob', 'fatherLastName', 'fatherFirstName', 'fatherPhone', 'fatherEducation', 'fatherJob', 'motherLastName', 'motherFirstName', 'motherPhone', 'motherEducation', 'motherJob']);
+    const ordinary = changedFields.filter(key => !sensitive.has(key));
+    const context = { actorUserId: String(req.user.sub), actorRoleAtTime: req.user.role, sessionId: req.user.sid, sourceIp: req.ip, userAgent: req.get('user-agent'), targetResourceType: 'student', targetResourceId: id };
+    await this.audit.record({ eventType: AuditEvent.RecordUpdated, actionOutcome: AuditOutcome.Success, ...context, changedFields, valueDelta: { before: Object.fromEntries(ordinary.map(key => [key, before[key]])), after: Object.fromEntries(ordinary.map(key => [key, updated[key]])) } });
+    const sensitiveChanged = changedFields.filter(key => sensitive.has(key));
+    if (sensitiveChanged.length) await this.audit.record({ eventType: AuditEvent.SensitiveFieldUpdated, actionOutcome: AuditOutcome.Success, ...context, changedFields: sensitiveChanged });
+    return updated;
   }
 
   @Delete(':id')

@@ -6,26 +6,22 @@ import { ProgramType } from 'src/programs/entities/program.entity';
 import { StudentsService } from 'src/students/students.service';
 import { FilterDto } from 'src/participation/dto/filter.dto';
 import { ParticipationService } from 'src/participation/participation.service';
+import { FileSecurityService } from 'src/security-logs/file-security.service';
 
 @Injectable()
 export class UploadsService {
   constructor(
     private studentsService: StudentsService,
     private participationService: ParticipationService,
+    private fileSecurity: FileSecurityService,
   ) { }
 
   async processFile(filePath: string, data: any) {
     let records: any[];
     let errors = [];
 
-       records = this.parseXLSX(filePath);
-      const studentsData = records.map((record) =>
-        this.mapToCreateStudentDto(record, data, errors),
-      );
-
-      console.log(studentsData)
-
     try {
+      const fileSecurity = await this.fileSecurity.inspect(filePath, data.mimeType);
       records = this.parseXLSX(filePath);
       const studentsData = records.map((record) =>
         this.mapToCreateStudentDto(record, data, errors),
@@ -36,7 +32,7 @@ export class UploadsService {
       }
 
       await this.studentsService.createMany(studentsData);
-      return { upload: true };
+      return { upload: true, fileSecurity, recordCount: records.length };
     } catch (error) {
       Logger.log(error);
       throw new HttpException(

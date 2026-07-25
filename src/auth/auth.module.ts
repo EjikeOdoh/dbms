@@ -7,11 +7,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guard/auth.guard';
 import { RolesGuard } from './guard/roles.guard';
+import { SecurityLogsModule } from 'src/security-logs/security-logs.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserSession } from './entities/user-session.entity';
+import { SessionsService } from './sessions.service';
 
 @Module({
   controllers: [AuthController],
   providers: [
     AuthService,
+    SessionsService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
@@ -24,6 +29,8 @@ import { RolesGuard } from './guard/roles.guard';
   imports: [
     ConfigModule.forRoot(),
     UsersModule,
+    SecurityLogsModule,
+    TypeOrmModule.forFeature([UserSession]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

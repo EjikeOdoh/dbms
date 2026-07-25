@@ -15,6 +15,26 @@ export class User {
     @Column({ nullable: false })
     password: string;
 
+    // TOTP secrets are encrypted before persistence. A user is only challenged
+    // during login after they have verified their enrollment code.
+    @Column({ nullable: true, select: false })
+    mfaSecret?: string;
+
+    @Column({ nullable: true, select: false })
+    mfaPendingSecret?: string;
+
+    @Column({ default: false })
+    mfaEnabled: boolean;
+
+    @Column({ default: 0, select: false })
+    failedLoginAttempts: number;
+
+    @Column({ nullable: true, type: 'timestamptz', select: false })
+    failedLoginWindowStartedAt?: Date;
+
+    @Column({ nullable: true, type: 'timestamptz', select: false })
+    lockoutUntil?: Date;
+
     @Column({ nullable: true })
     firstName: string
 

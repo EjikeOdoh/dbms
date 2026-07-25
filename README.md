@@ -32,6 +32,31 @@
 $ npm install
 ```
 
+## Security configuration
+
+The API requires `NEON_DB` and `JWT_SECRET`. To enable MFA enrollment, also set
+`MFA_ENCRYPTION_KEY` to a long, random secret kept outside source control. This
+key encrypts TOTP secrets stored in the database; rotating it without a key
+migration will require enrolled users to set up MFA again.
+
+MFA uses any TOTP-compatible authenticator. An authenticated user starts setup
+with `POST /auth/mfa/setup`, adds the returned `otpauthUrl` to their app, then
+confirms it using `POST /auth/mfa/verify-enrollment`. Once enabled, `/auth/login`
+returns a five-minute `mfaToken`, which must be exchanged with
+`POST /auth/mfa/verify-login` and the current six-digit code. Administrators can
+review authentication and MFA events at `GET /security-logs`.
+
+Set `LOG_DB` to a separate PostgreSQL database for the audit trail. The service
+will not start without it, preventing security logs from being written to the
+operational MIS database.
+
+Taxonomy-aligned security logging additionally requires `AUDIT_ENCRYPTION_KEY`
+for encrypted non-sensitive audit deltas, and `CLAMAV_HOST` (plus optional
+`CLAMAV_PORT`, default `3310`) for mandatory file scanning. Session and lockout
+defaults can be configured with `SESSION_IDLE_MINUTES`,
+`AUTH_MAX_FAILED_ATTEMPTS`, `AUTH_FAILURE_WINDOW_MINUTES`, and
+`AUTH_LOCKOUT_MINUTES`.
+
 ## Compile and run the project
 
 ```bash

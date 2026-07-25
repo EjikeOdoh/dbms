@@ -18,6 +18,11 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { TagModule } from './tag/tag.module';
 import { LoggerMiddleware } from './utils/logger/logger.middleware';
 import { AuthController } from './auth/auth.controller';
+import { SecurityLogsModule } from './security-logs/security-logs.module';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditInterceptor } from './security-logs/audit.interceptor';
+import { AuditExceptionFilter } from './security-logs/audit-exception.filter';
+import { SecurityLog } from './security-logs/entities/security-log.entity';
 
 @Module({
   imports: [
@@ -38,6 +43,25 @@ import { AuthController } from './auth/auth.controller';
         },
       }),
     }),
+    // Audit data is intentionally isolated from the operational MIS database.
+    // LOG_DB must point to a separate PostgreSQL database/cluster.
+    TypeOrmModule.forRootAsync({
+      name: 'audit',
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const url = configService.get<string>('LOGS_DB');
+        console.log(url)
+        if (!url) throw new Error('LOG_DB must be configured for the audit database');
+        return {
+          type: 'postgres' as const,
+          url,
+          entities: [SecurityLog],
+          synchronize: true,
+          ssl: { rejectUnauthorized: false },
+        };
+      },
+    }),
     StudentsModule,
     ProgramsModule,
     GradesModule,
@@ -53,9 +77,13 @@ import { AuthController } from './auth/auth.controller';
     SponsorshipModule,
     CloudinaryModule,
     TagModule,
+    SecurityLogsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_FILTER, useClass: AuditExceptionFilter },
+  ],
 })
 export class AppModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {

@@ -1,12 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 import { Role } from 'src/enums/role.enum';
 
 export class LoginDto {
   @ApiProperty({ example: 'admin' })
+  @IsString()
+  @IsNotEmpty()
   email: string;
 
   @ApiProperty({ example: 'password' })
+  @IsString()
+  @IsNotEmpty()
   password: string;
+}
+
+export class TotpCodeDto {
+  @ApiProperty({ example: '123456', description: 'Six-digit code from the authenticator app' })
+  @IsString()
+  @Matches(/^\d{6}$/)
+  code: string;
+}
+
+export class MfaLoginDto extends TotpCodeDto {
+  @ApiProperty({ description: 'Short-lived MFA challenge returned by the login endpoint' })
+  @IsString()
+  @IsNotEmpty()
+  mfaToken: string;
 }
 
 export class LoginResponseDto {
@@ -16,7 +35,13 @@ aG4gRG9lIiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImlhdCI6MTY5MzAw
 MDAwMCwiZXhwIjoxNjkzMDAzNjAwfQ.V3g6Jf3Z2N6w4p8pR0m0TjYz0FqRmP0E8sP3lRZc6Gc
 `,
   })
-  token: string;
+  token?: string;
+
+  @ApiProperty({ required: false, example: true })
+  mfaRequired?: boolean;
+
+  @ApiProperty({ required: false })
+  mfaToken?: string;
 }
 
 export class UnauthorizedErrorDto {

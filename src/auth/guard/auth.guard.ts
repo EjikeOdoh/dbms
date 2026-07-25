@@ -9,6 +9,10 @@ import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from 'src/decorators/decorators';
 import { ConfigService } from '@nestjs/config';
+import { SessionsService } from '../sessions.service';
+import { SecurityLogsService } from '../../security-logs/security-logs.service';
+import { AuditEvent } from '../../security-logs/event-types';
+import { AuditOutcome } from '../../security-logs/entities/security-log.entity';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -16,6 +20,8 @@ export class AuthGuard implements CanActivate {
     private jwtService: JwtService,
     private reflector: Reflector,
     private configService: ConfigService,
+    private sessionsService: SessionsService,
+    private securityLogs: SecurityLogsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -38,6 +44,14 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
+      if (!payload.sid) throw new UnauthorizedException();
+      const result = await this.sessionsService.validate(payload.sid, Number(payload.sub));
+      const metadata = { sourceIp: request.ip, userAgent: request.get('user-agent'), sessionId: payload.sid, actorUserId: String(payload.sub), actorRoleAtTime: payload.role };
+      if (!result.valid) {
+        if (result.expired) await this.securityLogs.record({ eventType: AuditEvent.SessionExpiry, actionOutcome: AuditOutcome.Success, ...metadata });
+        throw new UnauthorizedException();
+      }
+      if (result.heartbeat) await this.securityLogs.record({ eventType: AuditEvent.Heartbeat, actionOutcome: AuditOutcome.Success, ...metadata });
 
       request['user'] = payload;
     } catch {

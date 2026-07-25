@@ -83,9 +83,66 @@ export class UsersService {
   }
 
   async findByName(email: string) {
-    const user = await this.usersRepository.findOne({ where: { email } });
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect(['user.mfaSecret', 'user.mfaPendingSecret', 'user.failedLoginAttempts', 'user.failedLoginWindowStartedAt', 'user.lockoutUntil'])
+      .where('user.email = :email', { email })
+      .getOne();
     if (!user) throw new NotFoundException(`User with email "${email}" not found`);
     return user;
+  }
+
+  async findForMfa(id: number) {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect(['user.mfaSecret', 'user.mfaPendingSecret'])
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
+  async saveMfaEnrollment(id: number, pendingSecret: string) {
+    await this.usersRepository.update(id, { mfaPendingSecret: pendingSecret });
+  }
+
+  async enableMfa(id: number, secret: string) {
+    await this.usersRepository.update(id, {
+      mfaSecret: secret,
+      mfaPendingSecret: null,
+      mfaEnabled: true,
+    });
+  }
+
+  async disableMfa(id: number) {
+    await this.usersRepository.update(id, {
+      mfaSecret: null,
+      mfaPendingSecret: null,
+      mfaEnabled: false,
+    });
+  }
+
+  async registerFailedLogin(id: number, maxAttempts: number, windowMinutes: number, lockoutMinutes: number) {
+    const user = await this.findByIdForSecurity(id);
+    if (!user) return undefined;
+    const now = new Date();
+    const withinWindow = user.failedLoginWindowStartedAt && now.getTime() - user.failedLoginWindowStartedAt.getTime() <= windowMinutes * 60_000;
+    const attempts = withinWindow ? user.failedLoginAttempts + 1 : 1;
+    const locked = attempts >= maxAttempts;
+    await this.usersRepository.update(id, {
+      failedLoginAttempts: locked ? 0 : attempts,
+      failedLoginWindowStartedAt: locked ? null : (withinWindow ? user.failedLoginWindowStartedAt : now),
+      lockoutUntil: locked ? new Date(now.getTime() + lockoutMinutes * 60_000) : null,
+    });
+    return locked;
+  }
+
+  async resetLoginFailures(id: number) {
+    await this.usersRepository.update(id, { failedLoginAttempts: 0, failedLoginWindowStartedAt: null, lockoutUntil: null });
+  }
+
+  private findByIdForSecurity(id: number) {
+    return this.usersRepository.createQueryBuilder('user')
+      .addSelect(['user.failedLoginAttempts', 'user.failedLoginWindowStartedAt', 'user.lockoutUntil'])
+      .where('user.id = :id', { id }).getOne();
   }
 
   async findOne(id: number) {

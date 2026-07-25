@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Request,
 } from '@nestjs/common';
 import { PartnersService } from './partners.service';
 import {
@@ -33,6 +34,10 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { DeleteResponseDto } from 'src/common.dto';
+import { FileSecurityService } from 'src/security-logs/file-security.service';
+import { SecurityLogsService } from 'src/security-logs/security-logs.service';
+import { AuditEvent } from 'src/security-logs/event-types';
+import { AuditOutcome } from 'src/security-logs/entities/security-log.entity';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('partners')
@@ -40,6 +45,8 @@ export class PartnersController {
   constructor(
     private readonly partnersService: PartnersService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly fileSecurity: FileSecurityService,
+    private readonly audit: SecurityLogsService,
   ) {}
 
   @Post()
@@ -76,11 +83,14 @@ export class PartnersController {
   async create(
     @UploadedFile() logo: Express.Multer.File,
     @Body() createPartnerDto: CreatePartnerDto,
+    @Request() req,
   ) {
     let logoUrl: string;
     let logoPublicId: string;
     if (logo) {
       const filePath = path.resolve(logo.path);
+      const file = await this.fileSecurity.inspect(filePath, logo.mimetype);
+      await this.audit.record({ eventType: AuditEvent.FileUploaded, actionOutcome: AuditOutcome.Success, actorUserId: String(req.user.sub), actorRoleAtTime: req.user.role, sessionId: req.user.sid, sourceIp: req.ip, userAgent: req.get('user-agent'), targetResourceType: 'partner_logo', fileHash: file.hash, fileName: logo.originalname, fileSize: file.size, mimeType: logo.mimetype, metadata: { scanResult: file.scanResult } });
       const uploadRes = await this.cloudinaryService.uploadImage(filePath);
       logoUrl = uploadRes.url;
       logoPublicId = uploadRes.public_id;
@@ -131,6 +141,7 @@ export class PartnersController {
   async updateStatus(
     @Param('id') id: string,
     @Body() updatePartnerDto: UpdatePartnerDto,
+    @Request() req,
   ) {
     return this.partnersService.update(+id, updatePartnerDto, false);
   }
@@ -166,10 +177,13 @@ export class PartnersController {
     @UploadedFile() logo: Express.Multer.File,
     @Param('id') id: string,
     @Body() updatePartnerDto: UpdatePartnerDto,
+    @Request() req,
   ) {
 
     if (logo) {
       const filePath = path.resolve(logo.path);
+      const file = await this.fileSecurity.inspect(filePath, logo.mimetype);
+      await this.audit.record({ eventType: AuditEvent.FileUploaded, actionOutcome: AuditOutcome.Success, actorUserId: String(req.user.sub), actorRoleAtTime: req.user.role, sessionId: req.user.sid, sourceIp: req.ip, userAgent: req.get('user-agent'), targetResourceType: 'partner_logo', targetResourceId: id, fileHash: file.hash, fileName: logo.originalname, fileSize: file.size, mimeType: logo.mimetype, metadata: { scanResult: file.scanResult } });
       const uploadRes = await this.cloudinaryService.uploadImage(filePath);
 
       return this.partnersService.update(
