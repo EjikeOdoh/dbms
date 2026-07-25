@@ -14,9 +14,14 @@ export class AuditExceptionFilter extends BaseExceptionFilter {
     if (status >= 400 && !request.path.startsWith('/security-logs')) {
       const user = request.user;
       void this.logs.record({
-        eventType: AuditEvent.ApplicationError, actionOutcome: AuditOutcome.Failure,
-        actorUserId: user?.sub?.toString(), actorRoleAtTime: user?.role, sessionId: user?.sid,
-        sourceIp: request.ip, userAgent: request.get?.('user-agent'), targetResourceType: `${request.method} ${request.path}`,
+        eventType: AuditEvent.ApplicationError, 
+        actionOutcome: AuditOutcome.Failure,
+        actorUserId: user?.sub?.toString(), 
+        actorRoleAtTime: user?.role, 
+        sessionId: user?.sid,
+        sourceIp: request.ip, 
+        userAgent: request.get?.('user-agent'), 
+        targetResourceType: `${request.method} ${request.path}`,
         metadata: { status, error: exception instanceof HttpException ? exception.name : 'InternalServerError' },
       }).catch(() => undefined);
     }
