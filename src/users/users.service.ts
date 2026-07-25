@@ -62,7 +62,7 @@ export class UsersService {
 
   findAll() {
     return this.usersRepository.find({
-      relations: ['staff', 'volunteer'],
+      relations: { staff: true, volunteer: true },
       select: {
         id: true,
         role: true,
@@ -91,7 +91,7 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['staff', 'volunteer'],
+      relations: { staff: true, volunteer: true },
       select: {
         id: true,
         email: true,
@@ -148,7 +148,7 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.usersRepository.findOne({ where: { id }, relations: ['staff', 'volunteer'] });
+    const user = await this.usersRepository.findOne({ where: { id }, relations: { staff: true, volunteer: true } });
     if (!user) throw new NotFoundException('User not found');
 
     const { password, staffId, volunteerId, ...rest } = updateUserDto;

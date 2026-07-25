@@ -36,6 +36,21 @@ import { TagModule } from './tag/tag.module';
         },
       }),
     }),
+    TypeOrmModule.forRootAsync({
+      name: "audit",
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mongodb',
+        url: configService.get<string>('MONGO_DB'),
+        autoLoadEntities: true,
+        synchronize: true,
+        // logging: true,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      }),
+    }),
     StudentsModule,
     ProgramsModule,
     GradesModule,
@@ -55,4 +70,4 @@ import { TagModule } from './tag/tag.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

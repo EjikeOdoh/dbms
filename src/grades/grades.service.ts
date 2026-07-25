@@ -212,7 +212,9 @@ export class GradesService {
       const averageRepo = manager.getRepository(GradeAverage);
       const progressRepo = manager.getRepository(AcademicProgress);
 
-      const grade = await gradeRepo.findOne({ where: { id }, relations: ['student'] });
+      const grade = await gradeRepo.findOne({ where: { id }, relations: {
+        student: true
+      } });
       if (!grade) throw new NotFoundException('Grade not found');
 
       Object.assign(grade, dto);
@@ -250,7 +252,7 @@ export class GradesService {
       const averageRepo = manager.getRepository(GradeAverage);
       const progressRepo = manager.getRepository(AcademicProgress);
 
-      const grade = await gradeRepo.findOne({ where: { id }, relations: ['student'] });
+      const grade = await gradeRepo.findOne({ where: { id }, relations: {student: true} });
       if (!grade) throw new NotFoundException('Grade not found');
 
       const { student, year } = grade;

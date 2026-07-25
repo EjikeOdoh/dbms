@@ -47,7 +47,7 @@ export class VolunteersService {
   async findAll() {
     try {
       return await this.volunteerRepository.find({
-        select: ['id', 'firstName', 'lastName','email', 'type', 'active','hasAccount'],
+        select: {id: true, firstName: true, lastName: true, email: true, type: true, active: true, hasAccount: true}
       });
     } catch (error) {
       console.log(error);

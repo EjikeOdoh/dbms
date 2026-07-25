@@ -18,7 +18,7 @@ export class PartnersService {
     @InjectRepository(Sponsorship)
     private sponsorshipRepo: Repository<Sponsorship>,
     private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  ) { }
   async create(createPartnerDto: CreatePartnerDto) {
     const partner = this.partnerRepository.create(createPartnerDto);
     try {
@@ -35,7 +35,7 @@ export class PartnersService {
 
   async findAll() {
     return await this.partnerRepository.find({
-      select: ['id', 'name', 'logoUrl', 'isActive'],
+      select: { id: true, name: true, logoUrl: true, isActive: true }
     });
   }
 
