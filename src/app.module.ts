@@ -56,7 +56,7 @@ import { SecurityLog } from './security-logs/entities/security-log.entity';
         return {
           type: 'postgres' as const,
           url,
-          entities: [SecurityLog],
+          autoLoadEntities: true,
           synchronize: true,
           ssl: { rejectUnauthorized: false },
         };
@@ -85,10 +85,10 @@ import { SecurityLog } from './security-logs/entities/security-log.entity';
     { provide: APP_FILTER, useClass: AuditExceptionFilter },
   ],
 })
-export class AppModule implements NestModule{
+export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-    .apply(LoggerMiddleware)
-    .forRoutes(AuthController)
+      .apply(LoggerMiddleware)
+      .forRoutes(AuthController)
   }
 }

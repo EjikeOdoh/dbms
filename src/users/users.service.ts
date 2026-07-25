@@ -236,7 +236,6 @@ export class UsersService {
     return updatedUser
   }
 
-
   async remove(id: number) {
     const user = await this.findOne(id)
     if (user.staff) {
