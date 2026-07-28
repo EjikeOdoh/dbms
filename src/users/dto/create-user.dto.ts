@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, MinLength } from 'class-validator';
 import { Role } from 'src/enums/role.enum';
 
 export class CreateUserDto {
@@ -36,6 +36,10 @@ export class CreateUserDto {
   @IsNumber()
   @IsOptional()
   volunteerId?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isLoggedIn?: boolean;
 
 }
 

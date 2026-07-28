@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -55,6 +56,11 @@ export class ParticipationService {
       return await this.participationRepository.save(participation);
     } catch (error) {
       Logger.log(error);
+      if (error?.code === '23505') {
+        throw new ConflictException(
+          'Participation record already exists for this student, program, year, and quarter.',
+        );
+      }
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating this record.',
       );

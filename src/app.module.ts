@@ -16,6 +16,10 @@ import { PartnersModule } from './partners/partners.module';
 import { SponsorshipModule } from './sponsorship/sponsorship.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { TagModule } from './tag/tag.module';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditInterceptor } from './security-logs/audit.interceptor';
+import { AuditExceptionFilter } from './security-logs/audit-exception.filter';
+import { SecurityLogsModule } from './security-logs/security-logs.module';
 
 @Module({
   imports: [
@@ -27,30 +31,28 @@ import { TagModule } from './tag/tag.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        url: configService.get<string>('NEON_DB'),
+        host:configService.get<string>("DB_HOST"),
+        port:configService.get<number>("DB_PORT"),
+        database: configService.get<string>("DB_DATABASE"),
+        username: configService.get<string>("DB_USERNAME"),
+        password: configService.get<string>("DB_PASSWORD"),
         autoLoadEntities: true,
         synchronize: true,
         // logging: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        ssl: false
       }),
     }),
-    TypeOrmModule.forRootAsync({
-      name: "audit",
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'mongodb',
-        url: configService.get<string>('MONGO_DB'),
-        autoLoadEntities: true,
-        synchronize: true,
-        // logging: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      }),
-    }),
+TypeOrmModule.forRootAsync({
+  name: 'audit',
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (configService: ConfigService) => ({
+    type: 'mongodb',
+    url: configService.get<string>('MONGO_DB'),
+    autoLoadEntities: true,
+    synchronize: true,
+  }),
+}),
     StudentsModule,
     ProgramsModule,
     GradesModule,
@@ -66,8 +68,13 @@ import { TagModule } from './tag/tag.module';
     SponsorshipModule,
     CloudinaryModule,
     TagModule,
+    SecurityLogsModule
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
+    { provide: APP_FILTER, useClass: AuditExceptionFilter },
+  ],
 })
 export class AppModule { }
+

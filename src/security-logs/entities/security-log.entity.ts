@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
 
 export enum AuditOutcome {
   Success = 'Success',
@@ -6,78 +7,90 @@ export enum AuditOutcome {
   Denied = 'Denied',
 }
 
-/** Append-only, taxonomy-aligned audit record. */
+/**
+ * Append-only, taxonomy-aligned audit record.
+ *
+ * NOTE: no `name:` overrides on @Column() here. For MongoDB, TypeORM does
+ * NOT rename the stored document field the way it does for SQL column
+ * names - it always writes using the property name. Adding `name:` here
+ * silently does nothing to the actual document, but WILL get used to
+ * build indexes, causing indexes to point at a field that never gets
+ * written (see the E11000 dup-key-on-null bug this caused previously).
+ * Keep property names and document field names identical.
+ */
 @Entity('audit_logs')
 @Index(['eventType', 'timestampUtc'])
 @Index(['actorUserId', 'timestampUtc'])
 @Index(['sessionId', 'timestampUtc'])
 export class SecurityLog {
-  @PrimaryColumn('uuid', { name: 'event_id' })
-  eventId: string;
+  /** Mongo's own document id. Not what the rest of the app refers to -
+   * see `eventId` below for the application-level identifier. */
+  @ObjectIdColumn()
+  _id: ObjectId;
 
-  @Column({ name: 'event_type', length: 16 })
+  @Column()
   eventType: string;
 
-  @CreateDateColumn({ name: 'timestamp_utc', type: 'timestamptz', precision: 3 })
+  @Column()
   timestampUtc: Date;
 
-  @Column({ name: 'actor_user_id', nullable: true, type: 'varchar' })
+  @Column({ nullable: true })
   actorUserId?: string;
 
-  @Column({ name: 'actor_role_at_time', nullable: true })
+  @Column({ nullable: true })
   actorRoleAtTime?: string;
 
-  @Column({ name: 'actor_display_name', nullable: true })
+  @Column({ nullable: true })
   actorDisplayName?: string;
 
-  @Column({ name: 'source_ip', nullable: true, length: 64 })
+  @Column({ nullable: true })
   sourceIp?: string;
 
-  @Column({ name: 'user_agent', nullable: true, type: 'text' })
+  @Column({ nullable: true })
   userAgent?: string;
 
-  @Column({ name: 'session_id', nullable: true, type: 'uuid' })
+  @Column({ nullable: true })
   sessionId?: string;
 
-  @Column({ name: 'target_resource_type', nullable: true })
+  @Column({ nullable: true })
   targetResourceType?: string;
 
-  @Column({ name: 'target_resource_id', nullable: true })
+  @Column({ nullable: true })
   targetResourceId?: string;
 
-  @Column({ name: 'action_outcome', type: 'enum', enum: AuditOutcome })
+  @Column({ type: 'enum', enum: AuditOutcome })
   actionOutcome: AuditOutcome;
 
-  @Column({ name: 'changed_fields', nullable: true, type: 'jsonb' })
+  @Column({ nullable: true })
   changedFields?: string[];
 
-  @Column({ name: 'encrypted_value_delta', nullable: true, type: 'text', select: false })
+  @Column({ nullable: true, select: false })
   encryptedValueDelta?: string;
 
-  @Column({ name: 'file_hash', nullable: true, length: 128 })
+  @Column({ nullable: true })
   fileHash?: string;
 
-  @Column({ name: 'file_name', nullable: true, type: 'text' })
+  @Column({ nullable: true })
   fileName?: string;
 
-  @Column({ name: 'file_size', nullable: true, type: 'bigint' })
+  @Column({ nullable: true })
   fileSize?: string;
 
-  @Column({ name: 'mime_type', nullable: true })
+  @Column({ nullable: true })
   mimeType?: string;
 
-  @Column({ name: 'denial_reason', nullable: true, type: 'text' })
+  @Column({ nullable: true })
   denialReason?: string;
 
   @Column({ nullable: true })
   geolocation?: string;
 
-  @Column({ name: 'metadata', nullable: true, type: 'jsonb' })
+  @Column({ nullable: true })
   metadata?: Record<string, unknown>;
 
-  @Column({ name: 'previous_integrity_hash', nullable: true, length: 71 })
+  @Column({ nullable: true })
   previousIntegrityHash?: string;
 
-  @Column({ name: 'log_integrity_hash', length: 71 })
+  @Column()
   logIntegrityHash: string;
 }

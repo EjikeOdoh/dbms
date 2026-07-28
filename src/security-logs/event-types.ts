@@ -7,4 +7,6 @@ export const AuditEvent = {
   SessionStart: 'SESS-001', SessionEnd: 'SESS-002', Heartbeat: 'SESS-003',
   UserProvisioned: 'SYS-001', UserDeprovisioned: 'SYS-002', ApplicationError: 'SYS-007',
 } as const;
+
 export type AuditEventType = (typeof AuditEvent)[keyof typeof AuditEvent];
+

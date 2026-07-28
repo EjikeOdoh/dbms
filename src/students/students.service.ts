@@ -32,26 +32,17 @@ export class StudentsService {
   async create(createStudentDto: CreateStudentDto) {
     const { grades, year, program, quarter, firstName, lastName, ...rest } = createStudentDto;
 
-    try {
-      const student = this.studentsRepository.create({
-        firstName,
-        lastName,
-        yearJoined: year,
-        ...rest,
-      });
-
-      const savedStudent = await this.studentsRepository.save(student);
-
+    const createParticipation = async (studentId: number) => {
       try {
-        await this.participationService.create({
-          studentId: savedStudent.id,
+        return await this.participationService.create({
+          studentId,
           programId: program,
           year,
           quarter,
-          tag: rest.tag
+          tag: rest.tag,
         });
       } catch (error) {
-        if (error.code === '23505') {
+        if (error instanceof ConflictException || error?.code === '23505') {
           throw new ConflictException(
             `Participation record for student ${firstName} ${lastName} in program ID ${program} for year ${year} and quarter ${quarter} already exists.`,
           );
@@ -61,27 +52,47 @@ export class StudentsService {
           `An unexpected error occurred while creating participation for student: ${firstName} ${lastName}`,
         );
       }
+    };
 
-    }
-    catch (error) {
-      if (error.code === '23505') {
+    try {
+      const student = this.studentsRepository.create({
+        firstName,
+        lastName,
+        yearJoined: year,
+        ...rest,
+      });
+
+      const savedStudent = await this.studentsRepository.save(student);
+      await createParticipation(savedStudent.id);
+      return savedStudent;
+    } catch (error) {
+      if (error?.code === '23505') {
+        const combo = `${firstName.trim().toLowerCase()}_${lastName.trim().toLowerCase()}`;
         const existingStudent = await this.studentsRepository.findOne({
           where: {
-            firstName,
-            lastName,
+            combo,
             dob: rest.dob,
             school: rest.school,
           },
-        })
-
-        await this.participationService.create({
-          studentId: existingStudent.id,
-          programId: program,
-          year,
-          quarter,
-          tag: rest.tag
         });
+
+        if (!existingStudent) {
+          Logger.log(error);
+          throw new InternalServerErrorException(
+            'A duplicate student record was detected, but the existing student could not be located.',
+          );
+        }
+
+        await createParticipation(existingStudent.id);
+        return existingStudent;
       }
+
+      Logger.log(error);
+      throw error instanceof InternalServerErrorException
+        ? error
+        : new InternalServerErrorException(
+            'An unexpected error occurred while creating the student.',
+          );
     }
   }
 

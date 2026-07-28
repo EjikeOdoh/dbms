@@ -26,14 +26,15 @@ import { RolesGuard } from './guard/roles.guard';
     UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
+      global: true,
       useFactory: async (configService: ConfigService) => ({
-        global: true,
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '1d' },
       }),
       inject: [ConfigService],
     }),
   ],
-  exports: [AuthService],
+  exports: [AuthService, JwtModule],
 })
+
 export class AuthModule {}

@@ -69,6 +69,8 @@ export class UsersService {
         email: true,
         firstName: true,
         lastName: true,
+        enable2FA: true,
+        isLoggedIn: true,
         staff: {
           firstName: true,
           lastName: true
@@ -99,6 +101,9 @@ export class UsersService {
         lastName: true,
         password: false,
         role: true,
+        twoFASecret: true,
+        enable2FA: true,
+        isLoggedIn: true,
         staff: {
           id: true,
           staffId: true,
@@ -190,5 +195,25 @@ export class UsersService {
     await this.usersRepository.delete(id)
 
     return { delele: true }
+  }
+
+  async updateSecretKey(userId: number, secret: string) {
+    return this.usersRepository.update(
+      { id: userId },
+      {
+        twoFASecret: secret,
+        enable2FA: true,
+      },
+    )
+  }
+
+  async disable2FA(userId: number) {
+    return this.usersRepository.update(
+      { id: userId },
+      {
+        twoFASecret: null,
+        enable2FA: false,
+      },
+    )
   }
 }

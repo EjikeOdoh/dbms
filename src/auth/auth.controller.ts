@@ -28,7 +28,7 @@ import {
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Public()
   @Post('login')
@@ -62,5 +62,42 @@ export class AuthController {
   getProfile(@Request() req) {
     const { sub } = req.user;
     return this.authService.getProfile(Number(sub));
+  }
+
+  @Get('enable-2fa')
+  @UseGuards(AuthGuard)
+  enable2FA(
+    @Request()
+    req,
+  ) {
+    return this.authService.enable2FA(req.user.sub)
+  }
+  @Post('validate-2fa')
+  @UseGuards(AuthGuard)
+  @HttpCode(200)
+  validate2FA(
+    @Request()
+    req,
+    @Body()
+    validateTokenDTO: {token: string},
+  ): Promise<{ verified: boolean }> {
+    return this.authService.validate2FAToken(
+      req.user.sub,
+      validateTokenDTO.token,
+    )
+  }
+  @Get('disable-2fa')
+  @UseGuards(AuthGuard)
+  disable2FA(
+    @Request()
+    req,
+  ): Promise<{ message: string }> {
+    return this.authService.disable2FA(req.user.sub)
+  }
+
+
+  @Get('logout')
+  async logout(@Request() req) {
+    return this.authService.logout(req.user.sub);
   }
 }

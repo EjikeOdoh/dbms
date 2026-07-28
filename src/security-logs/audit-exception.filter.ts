@@ -14,7 +14,7 @@ export class AuditExceptionFilter extends BaseExceptionFilter {
     if (status >= 400 && !request.path.startsWith('/security-logs')) {
       const user = request.user;
       void this.logs.record({
-        eventType: AuditEvent.ApplicationError, 
+        eventType: status === 401 ? AuditEvent.LoginFailure : AuditEvent.ApplicationError, 
         actionOutcome: AuditOutcome.Failure,
         actorUserId: user?.sub?.toString(), 
         actorRoleAtTime: user?.role, 

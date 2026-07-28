@@ -28,6 +28,15 @@ export class User {
     })
     role: Role;
 
+    @Column({ nullable: true, type: 'text' })
+    twoFASecret: string
+
+    @Column({ default: false, type: 'boolean' })
+    enable2FA: boolean
+
+    @Column({default: false, type: 'boolean'})
+    isLoggedIn: boolean
+
     @OneToOne(() => Staff, { nullable: true })
     @JoinColumn()
     staff?: Staff;
