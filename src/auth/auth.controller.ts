@@ -95,7 +95,7 @@ export class AuthController {
     return this.authService.disable2FA(req.user.sub)
   }
 
-
+  @UseGuards(AuthGuard)
   @Get('logout')
   async logout(@Request() req) {
     return this.authService.logout(req.user.sub);

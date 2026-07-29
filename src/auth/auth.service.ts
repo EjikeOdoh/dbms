@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +16,11 @@ export class AuthService {
     token: string;
   }> {
     const { email, password } = loginDto;
+
+    if (!email || !password) {
+      throw new BadRequestException('Email and password are required');
+    }
+
     const user = await this.usersService.findByName(email);
     const isAuthenticated = await comparePass(password, user.password)
 
@@ -26,7 +31,6 @@ export class AuthService {
       sub: user.id,
       role: user.role,
     };
-    await this.usersService.update(user.id, { isLoggedIn: true })
     return {
       token: await this.jwtService.signAsync(payload),
     };
@@ -71,6 +75,9 @@ export class AuthService {
       if (!verified) {
         return { verified: false }
       }
+
+      await this.usersService.update(user.id, { isLoggedIn: true })
+
       return { verified: true }
     } catch (error) {
       console.debug(error)
@@ -80,5 +87,6 @@ export class AuthService {
 
   async logout(userId: number) {
     await this.usersService.update(userId, { isLoggedIn: false })
+    return {isLoggedIn: false}
   }
 }
