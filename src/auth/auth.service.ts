@@ -4,15 +4,17 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { comparePass } from 'src/utils/hash';
 import * as speakeasy from 'speakeasy'
+import { SessionService } from 'src/session/session.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private readonly sessionService: SessionService
   ) { }
 
-  async login(loginDto: LoginDto): Promise<{
+  async login(loginDto: LoginDto, ip: string, userAgent: string | undefined): Promise<{
     token: string;
   }> {
     const { email, password } = loginDto;
@@ -27,9 +29,13 @@ export class AuthService {
     if (!isAuthenticated) {
       throw new UnauthorizedException('Invalid login credentials');
     }
+
+    const session = await this.sessionService.create(user.id, ip, userAgent)
+
     const payload = {
       sub: user.id,
       role: user.role,
+      sessionId: session.id,
     };
     return {
       token: await this.jwtService.signAsync(payload),
@@ -42,7 +48,6 @@ export class AuthService {
 
   async enable2FA(userId: number): Promise<{ secret: string }> {
     const user = await this.usersService.findOne(userId)
-    Logger.log(user)
     if (user.enable2FA) {
       return { secret: user.twoFASecret }
     }

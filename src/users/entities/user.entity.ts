@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn, Unique } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne, JoinColumn, Unique, OneToMany } from 'typeorm';
 import { Staff } from '../../staff/entities/staff.entity'
+import { Session } from '../../session/entities/session.entity'
 import { Volunteer } from '../../volunteers/entities/volunteer.entity';
 import { Role } from 'src/enums/role.enum';
 
@@ -34,7 +35,7 @@ export class User {
     @Column({ default: false, type: 'boolean' })
     enable2FA: boolean
 
-    @Column({default: false, type: 'boolean'})
+    @Column({ default: false, type: 'boolean' })
     isLoggedIn: boolean
 
     @OneToOne(() => Staff, { nullable: true })
@@ -44,4 +45,7 @@ export class User {
     @OneToOne(() => Volunteer, { nullable: true })
     @JoinColumn()
     volunteer?: Volunteer;
+
+    @OneToMany(() => Session, (session) => session.user)
+    sessions: Session[];
 }

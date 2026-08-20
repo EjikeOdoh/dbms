@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StudentsModule } from './students/students.module';
@@ -20,6 +20,8 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from './security-logs/audit.interceptor';
 import { AuditExceptionFilter } from './security-logs/audit-exception.filter';
 import { SecurityLogsModule } from './security-logs/security-logs.module';
+import { SessionModule } from './session/session.module';
+import { TimeInMiddleware } from './middlewares/time-in/time-in.middleware';
 
 @Module({
   imports: [
@@ -31,8 +33,8 @@ import { SecurityLogsModule } from './security-logs/security-logs.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host:configService.get<string>("DB_HOST"),
-        port:configService.get<number>("DB_PORT"),
+        host: configService.get<string>("DB_HOST"),
+        port: configService.get<number>("DB_PORT"),
         database: configService.get<string>("DB_DATABASE"),
         username: configService.get<string>("DB_USERNAME"),
         password: configService.get<string>("DB_PASSWORD"),
@@ -42,17 +44,17 @@ import { SecurityLogsModule } from './security-logs/security-logs.module';
         ssl: false
       }),
     }),
-TypeOrmModule.forRootAsync({
-  name: 'audit',
-  imports: [ConfigModule],
-  inject: [ConfigService],
-  useFactory: (configService: ConfigService) => ({
-    type: 'mongodb',
-    url: configService.get<string>('MONGO_DB'),
-    autoLoadEntities: true,
-    synchronize: true,
-  }),
-}),
+    TypeOrmModule.forRootAsync({
+      name: 'audit',
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mongodb',
+        url: configService.get<string>('MONGO_DB'),
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
+    }),
     StudentsModule,
     ProgramsModule,
     GradesModule,
@@ -68,7 +70,8 @@ TypeOrmModule.forRootAsync({
     SponsorshipModule,
     CloudinaryModule,
     TagModule,
-    SecurityLogsModule
+    SecurityLogsModule,
+    SessionModule
   ],
   controllers: [],
   providers: [
@@ -76,5 +79,11 @@ TypeOrmModule.forRootAsync({
     { provide: APP_FILTER, useClass: AuditExceptionFilter },
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TimeInMiddleware)
+      .forRoutes("*")
+  }
+}
 

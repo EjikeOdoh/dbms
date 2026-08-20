@@ -153,7 +153,7 @@ export class UsersService {
       },
     });
 
-    if (!user) throw new NotFoundException(`User with email "${id}" not found`);
+    if (!user) throw new NotFoundException(`User with id "${id}" not found`);
     return user;
   }
 

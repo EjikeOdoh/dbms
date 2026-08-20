@@ -4,8 +4,9 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Ip,
   Post,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -24,6 +25,7 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -45,9 +47,11 @@ export class AuthController {
     description: 'Invalid credentials',
     type: UnauthorizedErrorDto,
   })
-  async login(@Body() loginDto: LoginDto) {
-    return await this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto, @Ip() ip: string, @Req() request: Request) {
+    const userAgent = request.headers['user-agent'] ?? undefined;
+    return await this.authService.login(loginDto, ip, userAgent);
   }
+
 
   @UseGuards(AuthGuard)
   @Get('profile')
@@ -59,7 +63,7 @@ export class AuthController {
     type: ProfileResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  getProfile(@Request() req) {
+  getProfile(@Req() req) {
     const { sub } = req.user;
     return this.authService.getProfile(Number(sub));
   }
@@ -67,19 +71,21 @@ export class AuthController {
   @Get('enable-2fa')
   @UseGuards(AuthGuard)
   enable2FA(
-    @Request()
+    @Req()
     req,
   ) {
     return this.authService.enable2FA(req.user.sub)
   }
+
+
   @Post('validate-2fa')
   @UseGuards(AuthGuard)
   @HttpCode(200)
   validate2FA(
-    @Request()
+    @Req()
     req,
     @Body()
-    validateTokenDTO: {token: string},
+    validateTokenDTO: { token: string },
   ): Promise<{ verified: boolean }> {
     return this.authService.validate2FAToken(
       req.user.sub,
@@ -89,7 +95,7 @@ export class AuthController {
   @Get('disable-2fa')
   @UseGuards(AuthGuard)
   disable2FA(
-    @Request()
+    @Req()
     req,
   ): Promise<{ message: string }> {
     return this.authService.disable2FA(req.user.sub)
@@ -97,7 +103,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Get('logout')
-  async logout(@Request() req) {
+  async logout(@Req() req) {
     return this.authService.logout(req.user.sub);
   }
 }
